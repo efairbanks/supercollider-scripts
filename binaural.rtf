@@ -1,0 +1,39 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue255;\red0\green0\blue191;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs28 \cf2 \
+(\
+\
+\{\
+\
+	\cf3 var\cf2  lc, rc, harmonics, beatfreq, amplitudes, rootfreq, pulse;\
+	\
+	pulse = LPF.ar(Pulse.ar(0.3,0.5),2);\
+	\
+	rootfreq = MouseY.kr(2,16);\
+	\
+	rootfreq = rootfreq*rootfreq;\
+	\
+	harmonics = [1,2,3,4];\
+	\
+	amplitudes = 1/harmonics;\
+	\
+	beatfreq = MouseX.kr(0,20);\
+	\
+	lc = \cf4 SinOsc\cf2 .ar((rootfreq*harmonics)+(beatfreq/2),0,amplitudes);\
+	\
+	rc = \cf4 SinOsc\cf2 .ar(\cf0 (rootfreq*harmonics)\cf2 -(beatfreq/2),0,\cf0 amplitudes\cf2 );\
+	\
+	lc = lc * pulse;\
+	\
+	rc = rc * pulse;\
+	\
+	\cf4 Out\cf2 .ar(0, [Mix.new(lc), Mix.new(rc)]);\
+	\
+\}.scope;\
+\
+)\
+}

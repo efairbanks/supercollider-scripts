@@ -1,0 +1,189 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf350
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;\red0\green115\blue0;
+\red0\green0\blue191;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs18 \cf2 \
+\
+(\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\hats\cf2 , \{\
+\
+	\cf3 |amp=0.1,out=0,len=0.1|\cf2 \
+	\
+	\cf3 var\cf2  env1, output;\
+	\
+	env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.0005,len]), doneAction:2 );\
+	\
+	output = \cf3 WhiteNoise\cf2 .ar()*env1*env1*env1*env1*amp;\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.8, 0.05 );\
+	\
+	output = \cf3 HPF\cf2 .ar( output, 5000 );\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\snare\cf2 , \{\
+\
+	\cf3 |amp=0.1,out=0|\cf2 \
+	\
+	\cf3 var\cf2  env1, output;\
+	\
+	env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.001,1/3]), doneAction:2 );\
+	\
+	output = \cf3 WhiteNoise\cf2 .ar()*env1*env1*env1*env1*amp;\
+	\
+	output = \cf3 LPF\cf2 .ar( output, 7000 );\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.8, 0.05 );\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\kick\cf2 , \{\
+	\
+	\cf3 |amp=0.1,out=0|\cf2 \
+	\
+	\cf3 var\cf2  output, env1, env2;\
+	\
+	env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.005,0.07]), doneAction:2 );\
+	\
+	env2 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.0001,0.005]) );\
+	\
+	output = \cf3 SinOsc\cf2 .ar(200*env1) + \cf3 SinOsc\cf2 .ar(100*env1,env1);\
+	\
+	output = output + (\cf3 WhiteNoise\cf2 .ar()*0.075*env2);\
+	\
+	output = \cf3 LPF\cf2 .ar( output, env1*4000 );\
+	\
+	output = output * amp * env1;\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+(instrument: \cf4 'kick'\cf2 ).play;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\wobble\cf2 , \{\
+	\
+	\cf3 |freq=440,amp=0.1,out=0,rate=3,dur=1|\cf2 \
+	\
+	\cf3 var\cf2  output;\
+	\
+	\cf3 var\cf2  env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,1,0],[0,dur,0]), doneAction:2 );\
+	\
+	output = \cf3 Pulse\cf2 .ar(freq/4,0.5);\
+	\
+	output = output + \cf3 SinOsc\cf2 .ar(freq/4);\
+	\
+	output = output + \cf3 Saw\cf2 .ar(freq/4);\
+	\
+	output = output + (\cf3 Saw\cf2 .ar(freq*3/8)*0.5);\
+	\
+	output = output + \cf3 SinOsc\cf2 .ar(freq/8);\
+		\
+	output = output * amp * env1;\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.95, 0.05 );\
+	\
+	output = \cf3 RLPF\cf2 .ar( output, \cf3 SinOsc\cf2 .ar(rate,0,8000,8100) );\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/6, 0.99, 0.5 ) * env1 * env1;\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\sawpad\cf2 , \{\
+	\
+	\cf3 |freq=440,amp=0.1,out=0,dur=1|\cf2 \
+	\
+	\cf3 var\cf2  output, env;\
+\
+	env = \cf3 EnvGen\cf2 .ar(\cf3 Env\cf2 .new([1,0.5],[dur],\cf4 \\sine\cf2 ),doneAction:2);\
+	\
+	output = \cf3 Pulse\cf2 .ar( freq, env/2+0.25 );\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.95, 0.05 );\
+	\
+	output = output * env * amp;\
+	\
+	output = \cf3 RHPF\cf2 .ar( output, freq*4*env, 0.4 );\
+	\
+	\cf3 Out\cf2 .ar( out, output );\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\masterbus\cf2 , \{\
+	\
+	\cf3 |in = 32|\cf2 \
+	\
+	\cf3 var\cf2  output = \cf3 In\cf2 .ar(in, 1);\
+	\
+	output = \cf3 HPF\cf2 .ar( output, 20 );\
+	\
+	output = \cf3 Limiter\cf2 .ar(output, 0.125, 0.05)*8;\
+	\
+	\cf3 Out\cf2 .ar(0, output!2);\
+	\
+\}).add;\
+\
+\
+)\
+\
+(\
+\
+r = \cf4 'rest'\cf2 ;\
+\
+~hatseq = \cf3 Prand\cf2 ([\cf3 Pseq\cf2 ([1,0,1,1],1),\cf3 Pseq\cf2 ([1,0,1,0],1),\cf3 Pseq\cf2 ([1,1,1,0],1),\cf3 Pseq\cf2 ([1,1,1,1],1)],\cf3 inf\cf2 ).asStream;\
+\
+~basseq = \cf3 Pseq\cf2 ([0,r,r,4,1,r,r,r,2,r,r,r,3,r,5,4],\cf3 inf\cf2 ).asStream;\
+\
+\cf0 ~basseq = \cf5 Pseq\cf0 ([0,r,r,1,r,r,3,r,2,r,r,-1,r,r,1,r],\cf5 inf\cf0 ).asStream;\cf2 \
+\
+b = \cf3 Bus\cf2 .audio();\
+\
+\cf3 Synth\cf2 .new( \cf4 'masterbus'\cf2 , [\cf4 'in'\cf2 , b] );\
+\
+t = \cf3 TempoClock\cf2 ( 130/60 );\
+\
+t.schedAbs( t.beats.ceil, \{ \cf3 |beat, sec|\cf2 \
+	\
+	\cf3 var\cf2  deg;\
+	\
+	if(beat%1 == 0)\{\
+	\
+		deg = ~basseq.next();\
+	\
+		(instrument: \cf4 'wobble'\cf2 , out: b, dur: t.beatDur*2, degree: deg, rate: 15.rand).play;	\
+		(instrument: \cf4 'sawpad'\cf2 , out: b, dur: t.beatDur*2, degree: deg + (2+(2-4.rand*2)), amp: 0.085).play;\
+		\
+	\};\
+	\
+	if(beat%1 == 0)\{\
+		\
+		(instrument: \cf4 'kick'\cf2 , out: b).play;\
+	\
+	\};\
+	\
+	if(beat+1%2 == 0)\{\
+	\
+		(instrument: \cf4 'snare'\cf2 , out: b).play;\
+		\
+	\};\
+	\
+	if( ~hatseq.next() != 0 )\{\
+		\
+		(instrument: \cf4 'hats'\cf2 , out: b).play;\
+		\
+	\};\
+	\
+	0.25\
+	\
+\});\
+\
+)}

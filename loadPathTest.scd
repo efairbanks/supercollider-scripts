@@ -1,0 +1,1 @@
+"/Users/ericfairbanks/Dropbox/SuperCollider/LaunchpadClass.scd".loadPath;

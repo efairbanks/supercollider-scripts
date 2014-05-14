@@ -1,0 +1,147 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red96\green96\blue96;\red0\green0\blue191;
+\red0\green0\blue255;\red191\green0\blue0;\red255\green102\blue0;\red51\green51\blue191;\red0\green115\blue0;
+\red0\green0\blue191;\red0\green115\blue0;}
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf2 \
+(\
+\
+a = \cf3 "10.0.2.15"\cf2 ;\
+\
+p = 9000;\
+\
+n = \cf4 NetAddr\cf2 (a,p);\
+\
+32.do(\{\
+\
+	\cf5 |inc|\cf2 \
+\
+	n.sendMsg(\cf3 "/1/multifader1/"\cf2  ++ (inc+1), sin(inc/32*pi*2)+1/2);\
+\
+\});\
+\
+\cf6 /*\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf6 r = OSCresponderNode(nil, "/1/multifader1/1", \{\
+	\
+	|t, r, msg|\
+	\
+	("/1/multifader1/1: " + t).postln; msg[1].postln;\
+	\
+\}).add;\
+\
+*/\cf2 \
+\
+(\
+\
+\cf7 ~enc\cf2  = 0;\
+\
+\cf4 OSCresponderNode\cf2 (\cf8 nil\cf2 ,\cf3 "/1/encoder1"\cf2 ,\{\
+\
+	\cf5 |t, r, msg|\cf2 \
+	\
+	if(msg[1] == 1,\{\
+		\
+		\cf7 ~enc\cf2  = \cf7 ~enc\cf2  + 0.1;\
+		\
+		\},\{\
+		\
+		\cf7 ~enc\cf2  = \cf7 ~enc\cf2  - 0.1;\
+			\
+	\});\
+	\
+	\cf7 ~enc\cf2 .postln;\
+	\
+\}).add;\
+\
+)\
+\
+\cf6 // Setup for simple sequencer -- v --\cf2 \
+\
+(\
+\
+\cf7 ~tc\cf2 .stop;\
+\
+\cf6 // --- //\cf2 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf2 a = \cf3 "10.0.2.15"\cf2 ;\
+\
+p = 9000;\
+\
+n = \cf4 NetAddr\cf2 (a,p);\
+\
+\cf6 // --- //\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 b = \cf4 Buffer\cf2 .read(s, \cf4 Platform\cf2 .resourceDir ++ \cf3 "/sounds/break.wav"\cf2 );\
+\
+\cf7 ~syn\cf2  = \cf4 SynthDef\cf2 (\cf9 \\break\cf2 , \{\
+	\
+	\cf5 |out = 0, bufnum = 0, spos = 0, trig = 0|\cf2 \
+\
+	\cf4 Out\cf2 .ar(out,\
+\
+		\cf4 PlayBuf\cf2 .ar(1, bufnum, \cf4 BufRateScale\cf2 .kr(bufnum), loop: 0, startPos: spos*BufFrames.kr(bufnum)) * \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([1,0],[1/4]), doneAction:2);\
+\
+	)\
+\
+\}).store;\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf6 // --- //\cf2 \
+\
+\cf7 ~seqpos\cf2  = 0;\
+\
+\cf7 ~tc\cf2  = \cf4 TempoClock\cf2 (160/60).sched(0,\{\
+\
+	8.do(\{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 	\
+		\cf5 |xinc|\cf2 \
+		\
+		n.sendMsg(\cf3 "/1/multipush1/1/"\cf2  ++ (xinc+1), if(xinc == \cf7 ~seqpos\cf2 , \{1\}, \{0\}));\
+\
+	\});\
+	\
+	\cf10 Synth\cf0 (\cf11 \\break\cf0 , [\cf11 \\out\cf0 , 0, \cf11 \\bufnum\cf0 , b, \cf11 \\spos\cf0 , ~seqpos/8]);\cf2 \
+	\
+	\cf7 ~seqpos\cf2  = (\cf7 ~seqpos\cf2  + 1) % 8;\
+	\
+	1/2;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf2 	\
+\});\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 OSCresponderNode\cf2 (\cf8 nil\cf2 ,\cf3 "/1/rotary3"\cf2 ,\{\
+	\
+	\cf5 |time, responder, msg|\cf2 \
+	\
+	\cf7 ~tc\cf2 .tempo = (msg[1]*300/60);\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 \}).add;\
+\
+8.do(\{\
+\
+	\cf5 |iter|\cf2 \
+	\
+	\cf4 OSCresponderNode\cf2 (\cf8 nil\cf2 ,\cf3 "/1/multipush1/1/"\cf2  ++ (iter+1), \{\
+	\
+		\cf5 |time, responder, msg|\cf2 \
+		\
+		\cf7 ~seqpos\cf2  = iter;\
+	\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf2 	\}).add;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 \
+\});\
+\
+)\
+}

@@ -1,0 +1,28 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs18 \cf0 \
+\
+(\
+\
+t = \cf2 TempoClock\cf0 (2);\
+\
+d = 0;\
+\
+t.sched(0,\{\
+	\
+	\cf2 |beat|\cf0 \
+	\
+	\cf2 var\cf0  degree = d;\
+	\
+	var amp = sin((beat%4)*2*pi/4+(pi/2))+1/4+0.5/10;\
+	\
+	(degree: degree +.t [7,2,4], amp: amp).play;\
+	\
+	1;\
+	\
+	\});\
+\
+)}

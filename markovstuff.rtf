@@ -1,0 +1,125 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green102\blue0;\red0\green0\blue191;
+\red0\green0\blue255;\red96\green96\blue96;\red51\green51\blue191;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs18 \cf2 \
+(\
+\
+\cf3 ~mkvdict\cf2  = \cf4 Dictionary\cf2 ();\
+\
+\cf3 ~mkvtrain\cf2  = \{\
+\
+	\cf5 |inarray, depth|\cf2 \
+	\
+	\cf5 var\cf2  ringbuf = \cf4 Array\cf2 .new(0);\
+	\
+	\cf5 var\cf2  ringbufindex = 0;\
+	\
+	\cf5 var\cf2  inarrayindex = 0;\
+	\
+	while(\{ringbuf.size<depth\},\{\
+	\
+		ringbuf = ringbuf.add(inarray[inarrayindex]);\
+		\
+		inarrayindex = inarrayindex + 1;\
+		\
+	\});\
+	\
+	while(\{inarrayindex<inarray.size\},\{\
+		\
+		\cf5 var\cf2  keystring = \cf6 ""\cf2 ;\
+		\
+		depth.do(\{\
+			\
+			\cf5 |index|\cf2 \
+		\
+			keystring = keystring ++ ringbuf.wrapAt(ringbufindex-depth+index);\
+			\
+		\});\
+		\
+		if(\cf3 ~mkvdict\cf2 [keystring]==\cf7 nil\cf2 ,\{\
+			\
+			\cf3 ~mkvdict\cf2 [keystring] = [inarray[inarrayindex]];\
+			\
+		\},\{\
+			\
+			\cf3 ~mkvdict\cf2 [keystring].add(inarray[inarrayindex]);\
+			\
+		\});\
+		\
+		ringbuf.wrapPut(ringbufindex,inarray[inarrayindex]);\
+		\
+		ringbufindex = ringbufindex + 1;\
+		\
+		inarrayindex = inarrayindex + 1;\
+		\
+	\});\
+	\
+	\cf3 ~mkvdict\cf2 ;\
+	\
+\};\
+\
+\cf3 ~mkvgen\cf2  = \{\
+\
+	\cf5 |seedarray, depth, items|\cf2 \
+	\
+	\cf5 var\cf2  ringbuffer = seedarray;\
+	\
+	\cf5 var\cf2  returnarray = [];\
+	\
+	\cf5 var\cf2  generateditem;\
+	\
+	\cf5 var\cf2  possibilityarray;\
+	\
+	items.do(\{\
+	\
+		\cf5 |itemindex|\cf2 \
+	\
+		\cf5 var\cf2  keystring = \cf6 ""\cf2 ;\
+	\
+		depth.do(\{\
+		\
+			\cf5 |depthindex|\cf2 \
+			\
+			keystring = keystring ++ ringbuffer.wrapAt(depthindex+itemindex);\
+			\
+		\});\
+		\
+		possibilityarray = \cf3 ~mkvdict\cf2 [keystring];\
+		\
+		if(possibilityarray==nil,\{\
+		\
+			possibilityarray = ~mkvdict.choose;\
+			\
+		\});\
+		\
+		generateditem = possibilityarray.choose;\
+		\
+		returnarray = returnarray.add(generateditem);\
+		\
+		ringbuffer.wrapPut(itemindex, generateditem);\
+		\
+	\});\
+	\
+	returnarray;\
+	\
+\};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~mkvinput\cf0  = [0,1,2,3,4,3,2,1,0,1,2,1,0,-1,0,-1,-2,-4,-2,-1,0,1,0,1,3,2,1,0,1,-1,0,3];\cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~mkvtrain\cf0 .(\cf3 ~mkvinput.differentiate\cf0 , 3);\cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 \
+\cf3 ~play = ~mkvgen\cf2 .([0,1,2], 3, 32).integrate;\
+\
+\
+\
+\cf4 Pbind\cf2 (\cf8 \\degree\cf2 , \cf4 Pseq\cf2 (~play,1),\cf8 \\dur\cf2 ,1/4).play;\
+\
+)\
+}

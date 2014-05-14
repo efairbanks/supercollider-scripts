@@ -1,0 +1,617 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue191;\red0\green115\blue0;
+\red96\green96\blue96;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs28 \cf0 \
+\cf2 /*\
+\
+Two modes, a global editing mode and a track editing mode.\
+\
+Each track has its own rendering routine and command set.\
+\
+The global mode has its own rendering routine and command set.\
+\
+There is a global queue that numbers can be pushed to so as to be used as arguments to commands.\
+\
+Commands are mapped to specific keys, and when that key is pressed it pulls the appropriate number of arguments off the stack and the command is executed.\
+\
+*/\cf0 \
+\
+(\
+\
+if(w==\cf3 nil\cf0 ,\{\},\{w.close;\});\
+\
+\cf2 // --- //	\cf0 \
+\
+~stack		= [];\
+\
+~acc		= [];\
+\
+~figures	= [];\
+\
+~pcursor	= 0;\
+\
+~fcursor	= 0;\
+\
+\cf2 // --- //\cf0 \
+\
+~getNote = \{\
+	\
+	\cf3 |midival|\cf0 \
+	\
+	midival = midival.asInteger;\
+	\
+	(midival%12).switch(\
+	\
+		0,\cf4 \\C\cf0 ,\
+		1,\cf4 \\Cx\cf0 ,\
+		2,\cf4 \\D\cf0 ,\
+		3,\cf4 \\Dx\cf0 ,\
+		4,\cf4 \\E\cf0 ,\
+		5,\cf4 \\F\cf0 ,\
+		6,\cf4 \\Fx\cf0 ,\
+		7,\cf4 \\G\cf0 ,\
+		8,\cf4 \\Gx\cf0 ,\
+		9,\cf4 \\A\cf0 ,\
+		10,\cf4 \\Ax\cf0 ,\
+		11,\cf4 \\B\cf0 \
+	\
+	);\
+	\
+	\};\
+\
+~getOctave = \{\
+	\
+	\cf3 |midival|\cf0 \
+	\
+	midival = midival.asInteger;\
+	\
+	(midival/12-1).asInteger;\
+	\
+	\};\
+	\
+~getOctave.value(12);\
+\
+~push = \{\
+	\
+	\cf3 var\cf0  ret = 0;\
+	\
+	~acc.size.do(\{\
+		\
+		\cf3 |index|\cf0 \
+		\
+		ret = ret + (~acc[index]*(10**((~acc.size-1)-index)));\
+		\
+		\});\
+		\
+	~stack = ~stack ++ ret;\
+	\
+	~acc = [];\
+	\
+	ret;\
+	\
+	\};\
+	\
+~pop = \{\
+	\
+	\cf3 var\cf0  ret = ~stack[0];\
+	\
+	~stack = ~stack[1..~stack.size];\
+	\
+	ret;\
+	\
+	\};\
+	\
+~rhythm2beats = \{\
+	\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\fs26 \cf0 	\cf3 |pulses, steps|\cf0 \
+	\
+	\cf3 var\cf0  a = \cf3 Array\cf0 .new(steps);\
+	\
+	\cf3 var\cf0  b = \cf3 Array\cf0 .new(steps);\
+	\
+	\cf3 var\cf0  tempa = \cf3 Array\cf0 .new(steps);\
+	\
+	\cf3 var\cf0  tempb = \cf3 Array\cf0 .new(steps);\
+	\
+	\cf3 var\cf0  split;\
+	\
+	steps.do(\{\
+		\
+		\cf3 |inc|\cf0 \
+		\
+		if(	inc<pulses,\
+			\{a = tempa.add(\cf3 Array\cf0 .new(steps).add(1));\},\
+			\{b = tempb.add(\cf3 Array\cf0 .new(steps).add(0));\});\
+			\
+	\});\
+	\
+	while(	\{(b.size>1).and(a.size>0)\},\{\
+			\
+		split = 0;\
+		\
+		b.size.do(\{\
+		\
+			\cf3 |inc|\cf0 \
+			\
+			tempa = \cf3 Array\cf0 .new(steps).addAll(a);\
+			\
+			a[inc%a.size] = tempa[inc%a.size].add(b[inc]);\
+			\
+			split = (split+1)%a.size;\
+			\
+		\});\
+		\
+		b = a.copyRange(split,a.size-1);\
+		\
+		tempa = a.copyRange(0,split-1);\
+		\
+		a = \cf3 Array\cf0 .new(steps).addAll(tempa);\
+\
+	\});\
+		\
+	a.addAll(b).flat;\
+	
+\fs28 \
+	\};\
+	\
+
+\fs26 ~figures2beats = \{\
+	\
+	\cf3 var\cf0  ret = [];\
+	\
+	~figures.size.do(\{\
+		\
+		\cf3 |iter|\cf0 \
+		\
+		ret = ret ++ ~rhythm2beats.value(~figures[iter][\cf4 \\rhythm\cf0 ][0],~figures[iter][\cf4 \\rhythm\cf0 ][1]);\
+		\
+		\});\
+		\
+		ret;\
+	\
+	\};\
+	\
+~figures2chords = \{\
+	\
+	\cf3 var\cf0  beats = [];\
+	\
+	\cf3 var\cf0  chords = [];\
+	\
+	\cf3 var\cf0  rhythm = [];\
+	\
+	\cf3 var\cf0  ret = [];\
+	\
+	~figures.size.do(\{\
+		\
+		\cf3 |iter|\cf0 \
+		\
+		rhythm = ~rhythm2beats.value(~figures[iter][\cf4 \\rhythm\cf0 ][0],~figures[iter][\cf4 \\rhythm\cf0 ][1]);\
+		\
+		ret = ret ++ rhythm;\
+		\
+		rhythm.size.do(\{\
+			\
+			chords = chords.add(~figures[iter][\cf4 \\chord\cf0 ]);\
+			\
+			\});\
+		\
+		\});\
+		\
+		chords;\
+	\
+	\};
+\fs28 \
+	\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 // --- Set up artificial beat step callback --- //\cf0 \
+\
+\cf2 // --- instruments --- //\cf0 \
+\
+~kick = \{\
+	\
+	\cf3 |rhythm,chord|\cf0 \
+	\
+	\cf3 var\cf0  delay = \cf3 ED\cf0 .convert(rhythm)[0];\
+	\
+	\cf3 var\cf0  bstart = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	\cf3 var\cf0  blen = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = blen[1..blen.size-1];\
+	\
+	bstart = [0]++bstart[1..bstart.size-2];\
+	\
+	bstart = bstart.integrate + delay;\
+	\
+	~clock.sched(0,\{\cf3 Synth\cf0 (\cf4 \\kick\cf0 )\});\
+	\
+	bstart.size.do(\{\
+		\
+		\cf3 |inc|\cf0 \
+		\
+		\cf2 //~clock.sched(bstart[inc],\{Synth(\\kick)\});\cf0 \
+		\
+		\});\
+	\
+	\};\
+	\
+~snare = \{\
+	\
+	\cf3 |rhythm,chord|\cf0 \
+	\
+	\cf3 var\cf0  delay = \cf3 ED\cf0 .convert(rhythm)[0];\
+	\
+	\cf3 var\cf0  bstart = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	\cf3 var\cf0  blen = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = blen[1..blen.size-1];\
+	\
+	bstart = [0]++bstart[1..bstart.size-2];\
+	\
+	bstart = bstart.integrate + delay;\
+	\
+	~clock.sched((rhythm.size/2).asInteger,\{\cf3 Synth\cf0 (\cf4 \\snare\cf0 )\});\
+	\
+	bstart.size.do(\{\
+		\
+		\cf3 |inc|\cf0 \
+		\
+		\cf2 //~clock.sched(bstart[inc],\{Synth(\\snare)\});\cf0 \
+		\
+		\});\
+	\
+	\};\
+	\
+~hats = \{\
+	\
+	\cf3 |rhythm,chord|\cf0 \
+	\
+	\cf3 var\cf0  delay, bstart, blen;\
+	\
+	rhythm = \cf3 ED\cf0 .extrapolate(\cf3 ED\cf0 .convert(rhythm)*4,2**\cf3 Array\cf0 .rand(8,0,3),16);\
+	\
+	delay = \cf3 ED\cf0 .convert(rhythm)[0];\
+	\
+	bstart = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = blen[1..blen.size-1];\
+	\
+	bstart = [0]++bstart[1..bstart.size-2];\
+	\
+	bstart = bstart.integrate + delay;\
+	\
+	bstart.size.do(\{\
+		\
+		\cf3 |inc|\cf0 \
+		\
+		~clock.sched(bstart[inc]/4,\{\cf3 Synth\cf0 (\cf4 \\hats\cf0 ,[\cf4 \\amp\cf0 ,cos(inc/bstart.size*2*pi*8)+2/80,\cf4 \\len\cf0 ,sin((inc/bstart.size)*(2*pi+(pi/8))*32)+2/15])\});\
+		\
+		\});\
+	\
+	\};\
+	\
+~bass = \{\
+	\
+	\cf3 |rhythm,chord|\cf0 \
+	\
+	\cf3 var\cf0  delay, bstart, blen, note;\
+	\
+	delay = \cf3 ED\cf0 .convert(rhythm)[0];\
+	\
+	bstart = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = blen[1..blen.size-1];\
+	\
+	bstart = [0]++bstart[1..bstart.size-2];\
+	\
+	bstart = bstart.integrate + delay;\
+	\
+	bstart.size.do(\{\
+		\
+		\cf3 |inc|\cf0 \
+		\
+		if(chord!=nil,\{note = (chord.choose)%7\});\
+		\
+		~clock.sched(bstart[inc],\{\cf3 Synth\cf0 (\cf4 \\bass303\cf0 ,[\cf4 \\freq\cf0 ,\cf3 Scale\cf0 .major.degreeToFreq(note%7,36.midicps,(note/7).asInteger),\cf4 \\amp\cf0 ,0.1])\});\
+		\
+		\});\
+	\
+	\};\
+\
+~pads = \{\
+	\
+	\cf3 |rhythm,chord|\cf0 \
+	\
+	\cf3 var\cf0  delay, bstart, blen;\
+	\
+	delay = \cf3 ED\cf0 .convert(rhythm)[0];\
+	\
+	bstart = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = \cf3 ED\cf0 .convert(rhythm);\
+	\
+	blen = blen[1..blen.size-1];\
+	\
+	bstart = [0]++bstart[1..bstart.size-2];\
+	\
+	bstart = bstart.integrate + delay;\
+	\
+	chord.do(\{\
+		\
+		\cf3 |degree|\cf0 \
+		\
+		\cf2 //~clock.sched(0,\{Synth(\\leads,[\\freq,Scale.major.degreeToFreq(degree,60.midicps,0)])\});\cf0 \
+		\
+		\cf3 Synth\cf0 (\cf4 \\leads\cf0 ,[\cf4 \\freq\cf0 ,\cf3 Scale\cf0 .major.degreeToFreq(degree%7,60.midicps,0)]);\
+		\
+		\});\
+	\
+	\};\
+\
+\cf2 // --- end instruments --- //  //bkmk\cf0 \
+\
+~clock.stop;\
+\
+~figures2chords.value();\
+\
+~clock = \cf3 TempoClock\cf0 .new(120/60*4).sched(	0,\
+											\{\
+												\
+												\cf3 var\cf0  chord, rhythm, beats, pulses;\
+												\
+												if(~fcursor>=~figures.size,\{~fcursor=0;~pcursor=0;\});\
+												\
+												if(~figures!=\cf3 nil\cf0 ,\{\
+												\
+												  if(~figures[~fcursor]!=\cf3 nil\cf0 ,\{\
+												\
+												    if(~figures[~fcursor][\cf4 \\chord\cf0 ]!=\cf3 nil\cf0 ,\{chord=~figures[~fcursor][\cf4 \\chord\cf0 ];\});\
+												\
+												    beats = ~figures[~fcursor][\cf4 \\rhythm\cf0 ][1];\
+												\
+												    pulses = ~figures[~fcursor][\cf4 \\rhythm\cf0 ][0];\
+												\
+												    rhythm = \cf3 ED\cf0 .create(pulses,beats);\
+												  \
+												    ~kick.value(rhythm,chord);\
+												    \
+												    ~snare.value(rhythm,chord);\
+												    \
+												    ~hats.value(rhythm,chord);\
+												    \
+												    ~bass.value(rhythm,chord);\
+												    \
+												    ~pads.value(rhythm,chord);\
+												 \
+												  \});\
+												\
+												\});\
+												\
+												~fcursor = ~fcursor + 1;\
+												\
+												if(beats==\cf3 nil\cf0 ,\{beats=1;\});\
+												\
+												beats;\
+												\
+												\cf2 /*\
+												var max = 0;\
+												\
+												var chord = [];\
+												\
+												if(~figures2chords.value()[~pcursor]!=nil,\{chord = ~figures2chords.value()[~pcursor]\});\
+												\
+												~figures.size.do(\{\
+																								|iter|\
+												\
+												max = max + ~figures[iter][\\rhythm][1];\
+																								\});\
+																								if(~figures2beats.value()[~pcursor]==1,\
+																								\{(\\instrument:\\leads,\\degree:chord).play\});\
+																								if(~pcursor+1<max,\{~pcursor=~pcursor+1;\},\{~pcursor=0\});\
+																								//chord.postln;\
+																								1;\
+												*/\cf0 \
+												\
+											\});\
+\
+\cf2 // --- end --- //\cf0 \
+\
+w = \cf3 Window\cf0 .new(\cf5 "Derp"\cf0 , \cf3 Rect\cf0 (0,0,1000,778), border:\cf3 false\cf0 ).fullScreen;\
+\
+\pard\pardeftab720
+\cf0 w.view.background_(\cf3 Color\cf0 .black);\
+\'a0 \'a0 \'a0 \'a0 \
+w.drawHook = \{\
+	\
+	\cf3 var\cf0  stackstring = \cf5 ""\cf0 ; \cf2 // make string for printing arg stack\cf0 \
+	\
+	\cf3 var\cf0  rhythmarray = [];	\cf2 // holds the rhythm based on all figures\cf0 \
+	\
+	\cf3 var\cf0  pos = 0;	\cf2 // offset for figure group drawing\cf0 \
+	\
+	\cf3 var\cf0  padding = 5; \cf2 // global padding variable\cf0 \
+	\
+	\cf2 // --- Draw arg stack --- //\cf0 \
+	\
+	stackstring = stackstring ++ \cf5 "[ "\cf0 ;\
+	\
+	~stack.size.do(\{\
+		\
+			\cf3 |iterator|\cf0 \
+		\
+			stackstring = stackstring ++ ~stack[iterator].asString;\
+			\
+			if( iterator < (~stack.size-1), \{stackstring = stackstring ++ \cf5 ", "\cf0 ;\});\
+		\
+		\});\
+	\
+	stackstring = stackstring ++ \cf5 " ]"\cf0 ;\
+\
+	stackstring.drawInRect(\cf3 Rect\cf0 (0,5,w.bounds.width,w.bounds.height/10), \cf3 Font\cf0 (\cf5 "Arial"\cf0 , 30), \cf3 Color\cf0 .green);\
+	\
+	\cf2 // --- end --- //\cf0 \
+	\
+	\cf2 // --- Draw figure rhythms --- //\cf0 \
+	\
+	\cf3 Pen\cf0 .width = 2;\
+	\
+	~figures.size.do(\{\
+		\
+		\cf3 |iter|\cf0 \
+		\
+		rhythmarray = rhythmarray ++ ~rhythm2beats.value(~figures[iter][\cf4 \\rhythm\cf0 ][0],~figures[iter][\cf4 \\rhythm\cf0 ][1]);\
+		\
+		\});\
+		\
+	rhythmarray.size.do(\{\
+		\
+		\cf3 |iter|\cf0 \
+		\
+		\cf3 Pen\cf0 .strokeRect(\cf3 Rect\cf0 (	(w.bounds.width)/(rhythmarray.size)*iter+padding,\
+							(w.bounds.height)*2/4+padding,\
+							(w.bounds.width)/(rhythmarray.size)-(padding*2),\
+							(w.bounds.height)/4*(3/4)-(padding*2)));\
+		\
+		\cf3 Pen\cf0 .addRect(\cf3 Rect\cf0 (		(w.bounds.width)/(rhythmarray.size)*iter+padding,\
+							(w.bounds.height)*2/4+padding,\
+							(w.bounds.width)/(rhythmarray.size)-(padding*2),\
+							(w.bounds.height)/4*(3/4)-(padding*2)));\
+								\
+		if(rhythmarray[iter]==0,\{\cf3 Pen\cf0 .stroke;\},\{\cf3 Pen\cf0 .fill;\});\
+		\
+		\});\
+	\
+	\cf2 // --- end --- //\cf0 \
+	\
+	\cf2 // --- Draw figure bounds --- //\cf0 \
+	\
+	~figures.size.do(\{\
+		\
+		\cf3 |iter|\cf0 \
+		\
+		\cf3 var\cf0  beatwidth = (w.bounds.width)/(rhythmarray.size);\
+		\
+		\cf3 var\cf0  rhythmsize = ~figures[iter][\cf4 \\rhythm\cf0 ][1];\
+		\
+		\cf3 var\cf0  notes = \cf5 ""\cf0 ;\
+		\
+		~figures[iter][\cf4 \\chord\cf0 ].size.do(\{\
+			\
+			\cf3 |itr|\cf0 \
+			\
+			notes = notes ++ ~getNote.value(~figures[iter][\cf4 \\chord\cf0 ][itr]);\
+			\
+			notes = notes ++ ~getOctave.value(~figures[iter][\cf4 \\chord\cf0 ][itr]);\
+			\
+			notes = notes ++ \cf5 " "\cf0 ;\
+			\
+			\});\
+			\
+		notes = format(\cf5 "%/% - "\cf0 , ~figures[iter][\cf4 \\rhythm\cf0 ][0], ~figures[iter][\cf4 \\rhythm\cf0 ][1]) ++ notes;\
+		\
+		\cf3 Pen\cf0 .strokeRect(\cf3 Rect\cf0 (	pos + padding,\
+							(w.bounds.height)*2/4 + ((w.bounds.height)*3/16) + padding,\
+							rhythmsize*beatwidth - (padding*2),\
+							(w.bounds.height)/4*(1/5) - (padding*2)));\
+							\
+		(notes).drawInRect(	\cf3 Rect\cf0 (	pos + (padding*2),\
+									(w.bounds.height)*2/4 + ((w.bounds.height)*3/16) + (padding*2),\
+									rhythmsize*beatwidth - (padding*4),\
+									(w.bounds.height)/4*(1/5) - (padding*4)),\
+									\
+							\cf3 Font\cf0 (\cf5 "Arial"\cf0 , (w.bounds.height)/4*(1/5) - (padding*4)),\
+							\
+							\cf3 Color\cf0 .green);\
+							\
+		pos = pos + (rhythmsize*beatwidth);\
+		\
+		\});\
+	\
+	\cf2 // --- end --- //\cf0 \
+	\
+	\cf2 // --- Draw play cursor --- //\cf0 \
+	\
+	\cf3 Pen\cf0 .fillRect(\cf3 Rect\cf0 (	(~pcursor*(w.bounds.width)/(rhythmarray.size)) + padding,\
+						(w.bounds.height)*1/4 + ((w.bounds.height)*3/16) + padding,\
+						((w.bounds.width)/(rhythmarray.size)) - (padding*2),\
+						(w.bounds.height)/4*(1/4) - (padding*2)));\
+	\
+	\cf2 // --- end --- //\cf0 \
+	\
+\};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf0 \
+\cf3 AppClock\cf0 .sched(0.0,\{w.refresh;1/30;\});\
+\
+w.view.keyDownAction = \{\
+		\
+		\cf3 |v,c,m,u,k|\cf0 \
+				\
+		k.switch(	\
+\
+					123,\{\},	\cf2 // left\cf0 \
+					124,\{\},	\cf2 // right\cf0 \
+					125,\{\},	\cf2 // down\cf0 \
+					126,\{\},	\cf2 // up\cf0 \
+					\
+					18,\{~acc = ~acc ++ 1;\},  \cf2 // 1 - 9 & 0\cf0 \
+					19,\{~acc = ~acc ++ 2;\},\
+					20,\{~acc = ~acc ++ 3;\},\
+					21,\{~acc = ~acc ++ 4;\},\
+					23,\{~acc = ~acc ++ 5;\},\
+					22,\{~acc = ~acc ++ 6;\},\
+					26,\{~acc = ~acc ++ 7;\},\
+					28,\{~acc = ~acc ++ 8;\},\
+					25,\{~acc = ~acc ++ 9;\},\
+					29,\{~acc = ~acc ++ 0;\},  \cf2 // --- //\cf0 \
+					\
+					33,\{if(~figures.size>1,	\{~figures = ~figures[1..(~figures.size)];~pcursor = ~pcursor - ~figures[0][\cf4 \\rhythm\cf0 ][1];\},\
+												\{~figures = [];\});\},    \cf2 // [\cf0 \
+					\
+					30,\{~figures = ~figures[0..(~figures.size-2)];\}, \cf2 // ]\cf0 \
+					\
+					24,\{~push.value;\},	\cf2 // + push\cf0 \
+					27,\{~pop.value;\},		\cf2 // - pop\cf0 \
+					\
+					51,\{~acc = [];\},     \cf2 // clear acc\cf0 \
+					\
+					53,\{if(w==\cf3 nil\cf0 ,\{\},\{w.close;\});\},  \cf2 // quit\cf0 \
+					\
+					3,\{	if(	 ~stack.size > 1,\
+							\{\
+								\cf3 var\cf0  dict = \cf3 Dictionary\cf0 .new[\cf4 \\rhythm\cf0 ] = \cf3 Array\cf0 .new ++ ~pop.value() ++ ~pop.value();\
+								\
+								~figures = ~figures.add(dict);\
+								\
+							\});\}, \cf2 // push figure\cf0 \
+						\
+					8,\{	if(	 ~stack.size > 2,\
+							\{\
+								\
+								\cf3 var\cf0  index = ~pop.value();\
+								\
+								if(index>=~figures.size,\{index=~figures.size-1;\});\
+								\
+								while(\{~stack.size>0\},\{~figures[index][\cf4 \\chord\cf0 ] = ~figures[index][\cf4 \\chord\cf0 ] ++ [~pop.value()];\});\
+								\
+							\});\},\
+					\
+					\{k.postln;\}\
+						\
+				);\
+	\
+\};\
+\
+w.front;\
+\
+)}

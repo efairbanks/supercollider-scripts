@@ -1,0 +1,42 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs28 \cf0 \
+\
+(\
+\
+\cf2 SynthDef\cf0 (\cf3 \\bass303\cf0 ,\{\
+	\
+		\cf2 |freq=110,attack=0.01,decay=0.1,pulsexsaw=0.75,res=0.25,amp=0.5|\cf0 \
+		\
+		\cf2 var\cf0  env = \cf2 EnvGen\cf0 .ar(\cf2 Env\cf0 ([0,1,0],[attack,decay]),doneAction:2);\
+		\
+		\cf2 var\cf0  tone = (\cf2 Pulse\cf0 .ar(freq)*pulsexsaw) + (\cf2 Saw\cf0 .ar(freq)*(1-pulsexsaw));\
+		\
+		\cf2 var\cf0  out = \cf2 RLPF\cf0 .ar(tone,freq*8*env+40,res) + (SinOsc.ar(freq/2)/2);\
+		\
+		out = out * env;\
+		\
+		out = HPF.ar(out,40);\
+		\
+		\cf2 Out\cf0 .ar([0,1],out*amp);\
+		\
+	\}).store;\
+	\
+\cf2 Synth\cf0 (\cf3 \\bass303\cf0 ,[\\pulsexsaw,0.75]);\
+\
+(instrument:\\bass303,degree:-14).play;\
+\
+(\
+\
+Pbind(	\\instrument,\\bass303,\
+		\\degree,Pseq(([1,4,5,2,0,2,3,2] +.t [0,2,4,2]).flat + [0,0,0,0,0] - 15,1),\
+		\\dur,0.075,\
+		\\decay,0.0125,\
+		\\res,Pseq([9,5,3]/30,10)).play;\
+		\
+)\
+\
+)}

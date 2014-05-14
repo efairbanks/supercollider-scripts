@@ -1,0 +1,1042 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red191\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf2 (\
+\
+\cf3 /*\
+\
+To Do:\
+\
+	- Display whole song\
+	- Display current measure\
+	- Display current working note value\
+	- Display current working divisions\
+	- Display current working tempo\
+	- Display beats/measure in some meaningful way\
+	- Add facilities for asking for instrument levels\
+	- Make stringargs "negative" strings\
+	- Allow negative numbers\
+	- Figure out how to deal with note durations (mlen*secsperbeats/divs*multiplier)\
+\
+*/\cf2 \
+\
+e = (\
+\
+	oldstates: [],\
+\
+	state: (\
+			\
+		measures:		[],		\cf3 // stores measures\cf2 \
+		bpm:			132,	\cf3 // tempo\cf2 \
+		instruments:	[],		\cf3 // list of instruments\cf2 \
+		stack:			[],		\cf3 // stack for magic-ing keypresses into commands\cf2 \
+		accumulator:	[],		\cf3 // accumulator for entering numbers\cf2 \
+		commandlist:	[],		\cf3 // list of previously executed commands\cf2 \
+		\
+		instlevels:	(),\
+		\
+		divs:			8,		\cf3 // current working measure divisions\cf2 \
+		div:			0,		\cf3 // current working measure division\cf2 \
+		measure:		0,		\cf3 // current working measure\cf2 \
+		duration:		1,		\cf3 // current working note duration (actual note dur: dur*(1/divs)*measurelengthorwhatever)\cf2 \
+		mbeats:		4,		\cf3 // current working measure length (length of measure in beats)\cf2 \
+		note:			0,		\cf3 // current working MIDI note value.\cf2 \
+		noteoffset:	48,		\cf3 // current working MIDI note offset\cf2 \
+		instrument:	\cf4 nil\cf2 ,	\cf3 // current working instrument\cf2 \
+		stringarg:		\cf4 nil\cf2 		\cf3 // variable to hold string args for changing instrument and/or synth key/value arguments\cf2 \
+		\
+	),\
+	\
+	tempoclock:	\cf4 nil\cf2 ,\
+\
+	exit: \{	\cf3 // exit program\cf2 \
+		\
+		|in|\
+	\
+		
+\fs28 if(w==\cf4 nil\cf2 ,\{\},\{w.close;\});\
+		\
+		e = \cf4 nil\cf2 ;
+\fs26 \
+		\
+	\},\
+	\
+	save: \{\
+		\
+		\cf4 |in|\cf2 \
+		\
+		\cf4 var\cf2  file = \cf4 File\cf2 .new(\cf5 "testsong"\cf2 ,\cf5 "w"\cf2 );\
+		\
+		file.write(e.state.asCompileString);\
+		\
+		file.close;\
+		\
+		\cf4 nil\cf2 ;\
+		\
+	\},\
+	\
+	pm: \{		\cf3 // play measure\cf2 \
+		\
+	 |measures|\
+	\
+	 if(measures != [],\
+	 \{\
+		\
+	  if(measures.size > 1,\
+	  \{\
+		\
+	   e.tempoclock.sched(e.state.measures[measures[0]].mbeats,\
+	   \{\
+		\
+		 e[\cf6 \\pm\cf2 ].(measures.copyRange(1,measures.size-1));\
+		 \
+		 \cf4 nil\cf2 ;\
+		\
+		\});\
+		  \
+	  \});\
+		\
+	  e.state.measures[measures[0]].events.do(\{\
+	\
+	   \cf4 |event|\cf2 \
+	\
+	   e.tempoclock.sched(	e.state.measures[measures[0]].mbeats*event.numerator/event.denominator,\
+	   \{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\tx7200\tx7640\tx8100\tx8620\ql\qnatural\pardirnatural
+\cf2 	\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 	    \cf4 var\cf2  amp, freq, args;\
+	\
+	    amp = 0.5;\
+	\
+	    if(	e.state.instlevels[event.instrument] != \cf4 nil\cf2 ,\
+	    		\{amp = amp*e.state.instlevels[event.instrument].dbamp\});\
+	\
+	    args = [	\cf6 \\freq\cf2 ,	event.note.midicps,\
+	   	 			\cf6 \\amp\cf2 ,	0.5*amp];\
+	\
+	    \cf4 Synth\cf2 (event.instrument,args);\
+	\
+	   \});\
+		  \
+	  \});\
+		 \
+	 \},\
+	 \{\
+		  \
+	  e.state.measures[e.state.measure].events.do(\{\
+	\
+	   \cf4 |event|\cf2 \
+	\
+	   e.tempoclock.sched(	e.state.measures[e.state.measure].mbeats*event.numerator/event.denominator,\
+	   \{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\tx7200\tx7640\tx8100\tx8620\ql\qnatural\pardirnatural
+\cf2 	\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 	    \cf4 var\cf2  amp, freq, args;\
+	\
+	    amp = 0.5;\
+	\
+	    if(	e.state.instlevels[event.instrument] != \cf4 nil\cf2 ,\
+	    		\{amp = amp*e.state.instlevels[event.instrument].dbamp\});\
+	\
+	    args = [	\cf6 \\freq\cf2 ,	event.note.midicps,\
+	   				\cf6 \\amp\cf2 ,	0.5*amp];\
+	\
+	    \cf4 Synth\cf2 (event.instrument,args);\
+	\
+	   \});\
+	\
+	  \});\
+	  \
+	 \});\
+		\
+	\},\
+	\
+	idb: \{\
+	\
+		\cf4 |in|\cf2 \
+	\
+		e.state.instlevels[e.state.instrument] = in[0].neg;\
+		\
+	\},\
+\
+	d: \{		\cf3 // change number of measure divisions\cf2 \
+	\
+		|in|\
+		\
+		e.state.divs = in[0];\
+		\
+	\},\
+	\
+	cd: \{		\cf3 // change current measure div\cf2 \
+	\
+		|in|\
+		\
+		e.state.div = in[0];\
+		\
+	\},\
+	\
+	nd: \{		\cf3 // change default note duration\cf2 \
+	\
+		|in|\
+		\
+		e.state.duration = in[0]/1000;\
+		\
+	\},\
+	\
+	mb: \{		\cf3 // change the length of a measure in beats\cf2 \
+	\
+		|in|\
+		\
+		e.state.mbeats = in[0];\
+		\
+	\},\
+	\
+	i: \{		\cf3 // change default instrument\cf2 \
+	\
+		|in|\
+		\
+		e.state.instrument = e.state.stringarg.asSymbol;\
+		\
+		e.state.stringarg = \cf4 nil\cf2 ;\
+		\
+	\},\
+	\
+	majtri: \{\
+	\
+		\cf4 |events|\cf2 \
+	\
+		events.do(\{\
+			\
+			\cf4 |event|\cf2 \
+		\
+			[0,4,7].do(\{\
+				\
+				\cf4 |note|\cf2 \
+		\
+				\cf4 var\cf2  n = ();\
+				\
+				n.numerator = event;\
+				\
+				n.denominator = e.state.divs;\
+				\
+				n.dur = e.dur;\
+				\
+				n.note = note+e.state.note+e.state.noteoffset;\
+				\
+				n.instrument = e.state.instrument;\
+				\
+				while(\{e.state.measures[e.state.measure] == \cf4 nil\cf2 \},\{\
+				\
+					
+\fs28 e.state.measures = e.state.measures.add((events: [], mbeats: e.state.mbeats));
+\fs26 \
+					\
+				\});\
+				\
+				e.state.measures[e.state.measure].events = e.state.measures[e.state.measure].events ++ [n];\
+			\
+			\});\
+			\
+		\});\
+		\
+	\},\
+	\
+	mintri: \{\
+	\
+		\cf4 |events|\cf2 \
+	\
+		events.do(\{\
+			\
+			\cf4 |event|\cf2 \
+		\
+			[0,3,7].do(\{\
+				\
+				\cf4 |note|\cf2 \
+		\
+				\cf4 var\cf2  n = ();\
+				\
+				n.numerator = event;\
+				\
+				n.denominator = e.state.divs;\
+				\
+				n.dur = e.dur;\
+				\
+				n.note = note+e.state.note+e.state.noteoffset;\
+				\
+				n.instrument = e.state.instrument;\
+				\
+				while(\{e.state.measures[e.state.measure] == \cf4 nil\cf2 \},\{\
+				\
+					
+\fs28 e.state.measures = e.state.measures.add((events: [], mbeats: e.state.mbeats));
+\fs26 \
+					\
+				\});\
+				\
+				e.state.measures[e.state.measure].events = e.state.measures[e.state.measure].events ++ [n];\
+			\
+			\});\
+			\
+		\});\
+		\
+	\},\
+	\
+	ti: \{\
+	\
+		\cf4 var\cf2  amp, freq, args;\
+	\
+		amp = 0.5;\
+	\
+		if(	e.state.instlevels[e.state.instrument] != \cf4 nil\cf2 ,\
+			\{amp = amp*e.state.instlevels[e.state.instrument].dbamp\});\
+	\
+		args = [	\cf6 \\freq\cf2 ,	(e.state.note+e.state.noteoffset).midicps,\
+					\cf6 \\amp\cf2 ,	0.5*amp	];\
+	\
+		\cf4 Synth\cf2 (e.state.instrument,args);\
+		\
+		\cf4 nil\cf2 ;\
+		\
+	\},\
+	\
+	csa: \{\
+		\
+		e.state.stringarg = \cf4 nil\cf2 ;\
+		\
+	\},\
+	\
+	m: \{		\cf3 // change current working measure\cf2 \
+	\
+		|in|\
+		\
+		e.state.measure = in[0];\
+		\
+	\},\
+	\
+	cpm: \{\
+	\
+		\cf4 |in|\cf2 \
+		\
+		if(in.size==1,\{\
+		\
+			e.state.measures.clipPut(e.state.measure,e.state.measures.clipAt(in[0]).copy);\
+			\
+		\});\
+		\
+		if(n.size==2,\{\
+		\
+			e.state.measures.clipPut(in[1],e.state.measures.clipAt(in[0]).copy);\
+			\
+		\});\
+		\
+	\},\
+	\
+	nm: \{\
+	\
+		e.state.measures.size.postln;\
+		\
+	\},\
+	\
+	am: \{\
+		\
+		e.state.measures = e.state.measures.insert(e.state.measure.asInteger,
+\fs28 (events: [], mbeats: e.state.mbeats));
+\fs26 \
+		\
+	\},\
+	\
+	amf: \{\
+		\
+		e.state.measures = e.state.measures.insert(e.state.measure.asInteger+1,
+\fs28 (events: [], mbeats: e.state.mbeats));
+\fs26 \
+		\
+	\},\
+	\
+	rm: \{\
+		\
+		\cf4 |in|\cf2 \
+		\
+		if(e.state.measures.size>1,\
+		\{\
+		 \
+		 in.do(\{\
+			 \
+		  \cf4 |measure|\cf2 \
+		 \
+		  if(e.state.measure >= e.state.measures.size, \{e.state.measure = e.measures.size-1;\},\{e.state.measure = e.state.measure - 1;\});\
+		  \
+		  if(e.state.measure<0,\{e.state.measure=0;\});\
+		  \
+		  e.state.measures.removeAt(e.state.measure);\
+		\
+		 \});\
+		\
+		\});\
+		\
+	\},\
+	\
+	n: \{		\cf3 // change default working note value\cf2 \
+	\
+		|in|\
+	\
+		e.state.note = in[0];\
+		\
+	\},\
+	\
+	e: \{		\cf3 // enter a new event or list of events via measure division number\cf2 \
+	\
+		|in|\
+		\
+		in.do(\{\
+			\
+			\cf4 |event|\cf2 \
+	\
+			\cf4 var\cf2  n = ();\
+			\
+			n.numerator = event;\
+			\
+			n.denominator = e.state.divs;\
+			\
+			n.dur = e.dur;\
+			\
+			n.note = e.state.note+e.state.noteoffset;\
+			\
+			n.instrument = e.state.instrument;\
+			\
+			while(\{e.state.measures[e.state.measure] == \cf4 nil\cf2 \},\{\
+			\
+				
+\fs28 e.state.measures = e.state.measures.add((events: [], mbeats: e.state.mbeats));
+\fs26 \
+				\
+			\});\
+			\
+			e.state.measures[e.state.measure].events = e.state.measures[e.state.measure].events ++ [n];\
+		\
+		\});\
+		\
+	\},\
+	\
+	c: \{		\cf3 // enter a new note or list of notes\cf2 \
+	\
+		|in|\
+		\
+		in.do(\{\
+			\
+			\cf4 |note|\cf2 \
+	\
+			\cf4 var\cf2  n = ();\
+			\
+			n.numerator = e.state.div;\
+			\
+			n.denominator = e.state.divs;\
+			\
+			n.dur = e.dur;\
+			\
+			n.note = note+e.state.noteoffset;\
+			\
+			n.instrument = e.state.instrument;\
+			\
+			while(\{e.state.measures[e.state.measure] == \cf4 nil\cf2 \},\{\
+			\
+				
+\fs28 e.state.measures = e.state.measures.add((events: [], mbeats: e.state.mbeats));
+\fs26 \
+				\
+			\});\
+			\
+			e.state.measures[e.state.measure].events = e.state.measures[e.state.measure].events ++ [n];\
+		\
+		\});\
+		\
+	\},\
+		\
+	sm: \{		\cf3 // show current measure\cf2 \
+	\
+		e.state.measures[e.state.measure].postln;\
+		\
+	\},\
+	\
+	
+\fs28 spush: \{	\cf3 // push\cf2 \
+\
+		\cf4 var\cf2  ret = 0;\
+\
+		e.state.accumulator.size.do(\{\
+	\
+			\cf4 |index|\cf2 \
+		\
+			ret = ret + (e.state.accumulator[index]*(10**((e.state.accumulator.size-1)-index)));\
+		\
+		\});\
+		\
+		e.state.stack = e.state.stack ++ ret;\
+	\
+		e.state.accumulator = [];\
+	\
+		ret;\
+	\
+	\},\
+\
+	spop: \{	\cf3 // pop\cf2 \
+		\
+		\cf4 var\cf2  ret = e.state.stack[0];\
+		\
+		if(	e.state.stack.size>1,\
+			\{e.state.stack = e.state.stack[0..(e.state.stack.size-2)];\},\
+			\{e.state.stack = [];\});\
+		\
+		ret;\
+		\
+	\},\
+	\
+	kick: \{	\cf3 // play kick\cf2 \
+		\
+		\cf4 Synth\cf2 (\cf6 \\kick\cf2 );\
+		\
+	\},\
+	\
+	snare: \{	\cf3 // play snare\cf2 \
+		\
+		\cf4 Synth\cf2 (\cf6 \\snare\cf2 );\
+		\
+	\},\
+	\
+	hats: \{	\cf3 // play hats\cf2 \
+		\
+		\cf4 Synth\cf2 (\cf6 \\hats\cf2 );\
+		\
+	\},\
+	\
+	print: \{	\cf3 // print arguments\cf2 \
+	\
+		|args|\
+		\
+		args.postln;\
+		\
+	\},\
+	\
+	undo: \{\
+	\
+		if(e.oldstates!=[],\{\
+		\
+			e.state = e.oldstates[e.oldstates.size-1];\
+			\
+			e.oldstates = e.oldstates.copyRange(0,e.oldstates.size-2);\
+			\
+		\});\
+		\
+	\},\
+	\
+	processStack: \{	\cf3 // process the command stack\cf2 \
+		\
+		\cf4 var\cf2  cmdstring, lastelement, cmdargs;\
+		\
+		\cf3 // --- //\cf2 \
+		\
+		if((e.state.measures == []).or(e.state.measures == \cf4 nil\cf2 ),\{\
+			\
+			
+\fs26 e.state.measures = 
+\fs28 (events: [], mbeats: e.state.mbeats);\
+		\
+		\});\
+		\
+		\cf3 // --- //\cf2 \
+		\
+		e.oldstates = e.oldstates.add(e.state);\
+		\
+		cmdstring		= \cf4 nil\cf2 ;\
+		cmdargs		= [];\
+		lastelement	= \cf4 nil\cf2 ;\
+		\
+		e.state.commandlist = [e.state.stack] ++ e.state.commandlist;\
+		\
+		while(	\{e.state.stack != []\},\
+		\
+				\{\
+				\
+					if(	e.state.stack[0].isNumber,\
+						\{\
+						\
+							if(	lastelement.isNumber,\
+								\{\
+									\
+									\cf3 // last element was a number, processing a number\cf2 \
+									\
+									cmdargs = cmdargs.add(e.state.stack[0]);\
+									\
+								\},\
+								\{\
+									\
+									\cf3 // last element was a character, processing a number\cf2 \
+									\
+									cmdargs = cmdargs.add(e.state.stack[0]);\
+									\
+								\});\
+						\
+						\},\
+						\{\
+						\
+							if(	lastelement.isNumber,\
+								\{\
+									\
+									\cf3 // last element was a number, processing a character\cf2 \
+									\
+									if(	e[cmdstring.asSymbol].isFunction,\
+										\{e[cmdstring.asSymbol].value(cmdargs);\},\
+										\{format(\cf5 "No known method %."\cf2 ,cmdstring).postln;\});\
+										\
+									cmdstring = \cf4 nil\cf2 ;\
+									\
+									cmdargs = [];\
+									\
+									cmdstring = cmdstring ++ e.state.stack[0];\
+									\
+								\},\
+								\{\
+									\
+									\cf3 // last element was a character, processing a character\cf2 \
+									\
+									cmdstring = cmdstring ++ e.state.stack[0];\
+									\
+								\});\
+						\
+						\});\
+						\
+					lastelement = e.state.stack[0];\
+					\
+					if(e.state.stack != [],\{e.state.stack = e.state.stack[1..e.state.stack.size];\});\
+				\
+				\}\
+			\
+		);\
+\
+		if(	e[cmdstring.asSymbol].isFunction,\
+			\{e[cmdstring.asSymbol].value(cmdargs);\},\
+			\{format(\cf5 "No known method %."\cf2 ,cmdstring).postln;\});\
+		\
+	\},\
+	\
+	init: \{	\cf3 // initialize the environment\cf2 \
+			\
+		\cf4 var\cf2  file = \cf4 File\cf2 (\cf5 "testsong"\cf2 ,\cf5 "r"\cf2 );\
+		\
+		if(file.isOpen,\{\
+		\
+			e.state = 	\cf4 String\cf2 .readNew(file).interpret;\
+			\
+			file.close;\
+			\
+		\},\{\
+		\
+			
+\fs26 e.state.measures = [
+\fs28 (events: [], mbeats: e.state.mbeats)];\
+			\
+		\});\
+				\
+		\cf3 // - //\cf2 \
+		\
+		e.tempoclock = \cf4 TempoClock\cf2 (e.state.bpm/60);\
+		\
+		\cf3 // - //\cf2 \
+	\
+	
+\fs26 	w = \cf4 Window\cf2 .new(\cf5 "Derp"\cf2 , \cf4 Rect\cf2 (100,100,640,480), border:\cf4 true\cf2 );\
+		\
+		w.front;\
+		\
+		w.view.background_(\cf4 Color\cf2 .black);\
+		\'a0 \'a0 \'a0 \'a0 \
+		w.drawHook = \{\
+			\
+			\cf3 /*\
+				Pen.strokeColor = Color.green;\
+		\
+\pard\pardeftab720\ql\qnatural
+\cf3 			Pen.width = 5;\
+			\
+			Pen.moveTo(0@0);\
+			\
+			Pen.lineTo(100@100);\
+			\
+			Pen.stroke;\
+			*/\cf2 \
+			\
+			\cf4 var\cf2  width = 
+\fs28 w.bounds.width;\
+			\
+			\cf4 var\cf2  height = w.bounds.height;\
+			\
+			\cf3 // Draw Command Line //
+\fs26 \cf2 \
+			\
+			
+\fs28 format(\cf5 "cmd: %"\cf2 ,e.state.stack).drawInRect(\cf4 Rect\cf2 (5,0,width,height/10), \cf4 Font\cf2 (\cf5 "Arial"\cf2 , 20), \cf4 Color\cf2 .green);\
+			\
+			\cf3 // Draw elements in accumulator //
+\fs26 \cf2 \
+			\
+			
+\fs28 format(\cf5 "accumulator: %"\cf2 ,e.state.accumulator).drawInRect(\cf4 Rect\cf2 (5,height-25,width/2,25), \cf4 Font\cf2 (\cf5 "Arial"\cf2 , 20), \cf4 Color\cf2 .green);\
+			\
+			\cf3 // Draw string in stringarg section //\cf2 \
+			\
+			format(\cf5 "%"\cf2 ,e.state.stringarg).drawInRect(\cf4 Rect\cf2 (5+width/2,height-25,width,25), \cf4 Font\cf2 (\cf5 "Arial"\cf2 , 20), \cf4 Color\cf2 .green);\
+			\
+			\cf3 // Draw current working measure and events //\cf2 \
+			\
+			if(e.state.measures.at(e.state.measure) != \cf4 nil\cf2 , \{\
+				\
+				\cf4 Pen\cf2 .strokeColor = \cf4 Color\cf2 .green;\
+			\
+				\cf4 Pen\cf2 .fillColor = \cf4 Color\cf2 .black;\
+				\
+				\cf4 Pen\cf2 .width = 2;\
+				\
+				\cf4 Pen\cf2 .moveTo(0@(height/2));\
+				\
+				\cf4 Pen\cf2 .lineTo(width@(height/2));\
+				\
+				\cf4 Pen\cf2 .stroke;\
+			\
+				
+\fs26 e.state.measures[e.state.measure].events.do(\{\
+				\
+					\cf4 |event|\cf2 \
+					\
+					\cf4 Pen\cf2 .addArc((width*event.numerator/event.denominator)@(height/2),5,0,2*pi);\
+					\
+					\cf4 Pen\cf2 .fill;\
+					\
+					\cf4 Pen\cf2 .addArc((width*event.numerator/event.denominator)@(height/2),5,0,2*pi);\
+					\
+					\cf4 Pen\cf2 .stroke;\
+					\
+					\cf4 nil\cf2 ;\
+					\
+				\});\
+			\
+			\});\
+			\
+			\cf3 // Draw current measure division size //\cf2 \
+			\
+			
+\fs28 \cf4 Pen\cf2 .strokeColor = \cf4 Color\cf2 .green;\
+		\
+			\cf4 Pen\cf2 .fillColor = \cf4 Color\cf2 .black;\
+			\
+			\cf4 Pen\cf2 .width = 2;\
+			\
+			\cf4 Pen\cf2 .moveTo(0@(height*9/16));\
+			\
+			\cf4 Pen\cf2 .lineTo(width@(height*9/16));\
+			\
+			\cf4 Pen\cf2 .stroke;
+\fs26 \
+			\
+			e.state.divs.do(\{\
+			\
+				\cf4 |inc|\cf2 \
+				\
+
+\fs28 				\cf4 Pen\cf2 .moveTo((width*inc/e.state.divs)@(height*35/64));\
+				\
+				\cf4 Pen\cf2 .lineTo((width*inc/e.state.divs)@(height*9/16));\
+				\
+				\cf4 Pen\cf2 .stroke;
+\fs26 \
+				\
+			\});\
+			\
+			
+\fs28 \cf4 Pen\cf2 .fillColor = \cf4 Color\cf2 .green;
+\fs26 \
+			\
+			7.do(\{\
+				\
+				\cf4 |inc|\cf2 \
+				\
+				\cf4 var\cf2  ncheck = [0,2,4,5,7,9,11];\
+				\
+				\cf4 Pen\cf2 .strokeRect(\cf4 Rect\cf2 ((inc*(width/2)/7)+(width/4),height*5/8,(width/2)/7,height/8));\
+				\
+				if(	(e.state.note+e.state.noteoffset)%12 == ncheck[inc],\
+					\{\cf4 Pen\cf2 .fillRect(\cf4 Rect\cf2 ((inc*(width/2)/7)+(width/4),height*5/8,(width/2)/7,height/8));\});\
+				\
+			\});\
+			\
+			6.do(\{\
+			\
+				\cf4 |inc|\cf2 \
+				\
+				\cf4 var\cf2  ncheck = [1,3,\cf4 nil\cf2 ,6,8,10];\
+				\
+				if(inc != 2, \{\
+					\
+					
+\fs28 \cf4 Pen\cf2 .fillColor = \cf4 Color\cf2 .black;
+\fs26 \
+				\
+					\cf4 Pen\cf2 .fillRect(\cf4 Rect\cf2 ((inc*(width/2)/7)+((width/2)/14)+((width/2)/28)+(width/4),height*5/8,(width/2)/14,height/16));\
+					\
+					\cf4 Pen\cf2 .strokeRect(\cf4 Rect\cf2 ((inc*(width/2)/7)+((width/2)/14)+((width/2)/28)+(width/4),height*5/8,(width/2)/14,height/16));\
+				\
+					\cf4 Pen\cf2 .fillColor = \cf4 Color\cf2 .green;\
+				\
+					if(	(e.state.note+e.state.noteoffset)%12 == ncheck[inc],\
+						\{\cf4 Pen\cf2 .fillRect(\cf4 Rect\cf2 ((inc*(width/2)/7)+((width/2)/14)+((width/2)/28)+(width/4),height*5/8,(width/2)/14,height/16));\});\
+				\
+				\});\
+				\
+			\});\
+			\
+		\};\
+		\
+		
+\fs28 \
+		w.view.keyDownAction = \{\
+				\
+				\cf4 |v,c,m,u,k|\cf2 \
+				\
+				if((u > 96) && (u < 122),\{e.state.stack = e.state.stack++[c]\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 				\
+				if((u > 64) && (u < 91),\{e.state.stringarg = e.state.stringarg++(c.toLower)\});\
+						\
+				k.switch(	\
+		\
+					123,\{\},	\cf3 // left\cf2 \
+					124,\{\},	\cf3 // right\cf2 \
+					125,\{\},	\cf3 // down\cf2 \
+					126,\{\},	\cf3 // up\cf2 \
+					\
+					18,\{e.state.accumulator = e.state.accumulator ++ 1;\},  \cf3 // 1 - 9 & 0\cf2 \
+					19,\{e.state.accumulator = e.state.accumulator ++ 2;\},\
+					20,\{e.state.accumulator = e.state.accumulator ++ 3;\},\
+					21,\{e.state.accumulator = e.state.accumulator ++ 4;\},\
+					23,\{e.state.accumulator = e.state.accumulator ++ 5;\},\
+					22,\{e.state.accumulator = e.state.accumulator ++ 6;\},\
+					26,\{e.state.accumulator = e.state.accumulator ++ 7;\},\
+					28,\{e.state.accumulator = e.state.accumulator ++ 8;\},\
+					25,\{e.state.accumulator = e.state.accumulator ++ 9;\},\
+					29,\{e.state.accumulator = e.state.accumulator ++ 0;\},  \cf3 // --- //\cf2 \
+					\
+					49,\{e.spush.value;\}, \cf3 // " " spush\cf2 \
+					50,\{e.spop.value;\}, \cf3 //  "`" spop\cf2 \
+					\
+					51,\{e.state.accumulator = [];\},     \cf3 // clear acc\cf2 \
+					\
+					53,\{if(w==\cf4 nil\cf2 ,\{\},\{w.close;\});\},  \cf3 // quit\cf2 \
+					\
+					36,\{ \cf3 // Process stack\cf2 \
+					\
+						e.processStack.value;\
+						\
+					\}\
+					\
+					\cf3 //,\{k.postln;c.postln;u.postln;\}\cf2 \
+						\
+				);\
+						\
+		\};\
+	\
+		\cf4 AppClock\cf2 .sched(0.0,\{w.refresh;1/30;\});\
+	\
+	\}\
+	\
+
+\fs26 );\
+\
+s.boot;\
+\
+s.waitForBoot(\{\
+\
+	e.init.();\
+	\
+\},\cf4 inf\cf2 );\
+\
+)\
+\
+\cf3 // bkmk\cf2 \
+\
+(\
+\
+\{\
+\
+\cf4 var\cf2  kick, snare, hats, crash, bass, leads, bgmel, pads, noisefx;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\fs30 \cf2 kick		= 16;\
+snare		= 18;\
+hats		= 20;\
+crash		= 22;\
+bass		= 24;\
+leads		= 26;\
+bgmel		= 28;\
+pads		= 30;\
+noisefx	= 32;\
+\
+\cf4 SynthDef\cf2 (\cf6 \\mixer\cf2 , \{\
+\
+	\cf4 var\cf2  lkick = \cf4 In\cf2 .ar(kick,2);\
+\
+	\cf4 var\cf2  lsnare = \cf4 In\cf2 .ar(snare,2);\
+\
+	\cf4 var\cf2  lhats = \cf4 In\cf2 .ar(hats,2);\
+\
+	\cf4 var\cf2  lcrash = \cf4 In\cf2 .ar(crash,2);\
+\
+	\cf4 var\cf2  lbass = \cf4 Compander\cf2 .ar(\cf4 FreeVerb\cf2 .ar(\cf4 In\cf2 .ar(bass,2),1/4,1/4,1/4),\cf4 HPF\cf2 .ar(lkick,100),-60.dbamp,1,1/30,2/1000,7/100);\
+\
+	\cf4 var\cf2  lleads = \cf4 HPF\cf2 .ar(\cf4 In\cf2 .ar(leads,2),200);\
+\
+	\cf4 var\cf2  lbgmel = \cf4 In\cf2 .ar(bgmel,2);\
+\
+	\cf4 var\cf2  lpads = \cf4 In\cf2 .ar(pads,2);\
+\
+	\cf4 var\cf2  lnoisefx = \cf4 In\cf2 .ar(noisefx,2);\
+\
+	\cf3 // --- //\cf2 \
+	\
+	\cf4 var\cf2  out = lkick+lsnare+lhats+lcrash+lbass+lleads+lbgmel+lpads+lnoisefx;\
+	\
+	out = \cf4 FreeVerb\cf2 .ar(out,-20.dbamp,2/4,1/4);\
+	\
+	out = \cf4 Limiter\cf2 .ar(out,0.5,(1/333)+(1/10)) + (\cf4 Normalizer\cf2 .ar(\cf4 Limiter\cf2 .ar(out,1/16,1/333),1,1/10)/32);\
+	\
+	\cf4 Out\cf2 .ar(0,out);\
+	\
+\}).store;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\fs26 \cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\fs30 \cf2 ~mixer = \cf4 Synth\cf2 (\cf6 \\mixer\cf2 );
+\fs26 \
+\
+
+\fs30 f = \{\
+	\
+	\cf4 |ratio = 2, elements = 10|\cf2 \
+\
+	\cf4 var\cf2  x = [1];\
+	\
+	elements.do(\{x = x ++ (x[x.size-1]*ratio)\});\
+	\
+	x;\
+	\
+\};\
+\
+\cf4 SynthDef\cf2 (\cf6 \\bass\cf2 , \{\
+\
+	\cf4 |freq=440,dur=0.3,amp=0.5|\cf2 \
+	\
+	\cf4 var\cf2  afreq = freq/8;\
+	\
+	\cf4 var\cf2  env = \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([1,1/2,1/3,0],[1/200,dur,1/50]), doneAction: 2);\
+	\
+	\cf4 var\cf2  penv = \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([1,2,2],[dur/2,dur/2]));\
+	\
+	\cf4 var\cf2  out = \cf4 Fold\cf2 .ar(\cf4 RLPF\cf2 .ar(\cf4 Saw\cf2 .ar([afreq+(afreq/100),afreq-(afreq/100)])*env,env*16000,0.4),-1/6,1/6)*3/2;\
+	\
+	out = \cf4 RLPF\cf2 .ar(out,5000,0.3);\
+	\
+	afreq = freq*2*penv;\
+	\
+	out = out + ((\cf4 Saw\cf2 .ar([afreq+(afreq/100),afreq-(afreq/100)])*env)/4);\
+	\
+	out = out.tanh;\
+	\
+	out = out + \cf4 BPF\cf2 .ar(\cf4 Fold\cf2 .ar(out,-1/8,1/8),\cf4 SinOsc\cf2 .ar(7,0,5000,5500),0.1)*8;\
+	\
+	out = \cf4 Normalizer\cf2 .ar(out,1,1/300)*amp;\
+	\
+	\cf4 Out\cf2 .ar(bass, out!2);\
+	\
+\}).store;\
+\
+\cf4 SynthDef\cf2 (	\cf6 \\kick\cf2 , \{\
+			\
+	\cf4 |dur=0.25,amp=0.5,basefreq=120|\cf2 \
+	\
+	\cf4 var\cf2  freqs = f.value(1.1,20)*basefreq;\
+	\
+	\cf4 var\cf2  amps = f.value(0.225,20)*amp*0.5;\
+		\
+	\cf4 var\cf2  phases = \cf4 NamedControl\cf2 .kr(\cf6 \\phases\cf2 ,#[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);\
+	\
+	\cf4 var\cf2  modfreqs = freqs * \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([1,0],[dur]));\
+	\
+	\cf4 var\cf2  tone = \cf4 SinOsc\cf2 .ar(modfreqs,phases,amps)*\cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([0,1,0],[0.005,dur]),doneAction:2);\
+	\
+	tone = tone + \cf4 LPF\cf2 .ar((\cf4 PinkNoise\cf2 .ar()*\cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([1,0],[0.004])))*0.02,2250);\
+	\
+	tone = \cf4 HPF\cf2 .ar(tone,40);\
+	\
+	\cf4 Out\cf2 .ar(kick, tone!2);\
+				\
+\}).store;\
+\
+\cf4 SynthDef\cf2 (\cf6 \\snare\cf2 , \{\
+	\
+	\cf4 |amp = 0.5, dur = 0.1|\cf2 \
+	\
+	\cf4 var\cf2  env, noise, output;\
+	\
+	noise = \cf4 Dust2\cf2 .ar(4000);\
+	\
+	env = \cf4 Line\cf2 .ar(1.0, 0, 0.15, doneAction:2);\
+	\
+	output = \cf4 LPF\cf2 .ar(\cf4 RHPF\cf2 .ar( noise * env, 1000, 0.4), 9000)*amp;\
+	\
+	\cf4 Out\cf2 .ar(snare, output ! 2 );\
+	\
+\}).store;\
+\
+\cf4 SynthDef\cf2 (\cf6 \\proglead\cf2 ,\{\
+	\
+	\cf4 |freq=440,amp=0.5|\cf2 \
+	\
+	\cf4 var\cf2  out = \cf4 Saw\cf2 .ar([freq-(freq/100),freq+(freq/100)])/2;\
+	\
+	\cf4 var\cf2  env = \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([1,1/32,0],[0.15,1]), doneAction: 2);\
+	\
+	out = \cf4 LPF\cf2 .ar(out,env*8000);\
+	\
+	out = out*amp;\
+	\
+	\cf4 Out\cf2 .ar(leads, out!2);\
+	\
+\}).store;\
+\
+\cf4 SynthDef\cf2 ( \cf6 \\hats\cf2 , \{\
+\
+	\cf4 |amp=0.1,out=0,len=0.1|\cf2 \
+	\
+	\cf4 var\cf2  env1, output;\
+	\
+	env1 = \cf4 EnvGen\cf2 .ar( \cf4 Env\cf2 .new([0,1,0],[0.0005,len]), doneAction:2 );\
+	\
+	output = \cf4 WhiteNoise\cf2 .ar()*env1*env1*env1*env1*amp;\
+	\
+	output = \cf4 FreeVerb\cf2 .ar( output, 1/3, 0.8, 0.05 );\
+	\
+	output = \cf4 HPF\cf2 .ar( output, 5000 );\
+	\
+	\cf4 Out\cf2 .ar(hats, output!2);\
+	\
+\}).store;\
+\
+\}.();\
+\
+)}

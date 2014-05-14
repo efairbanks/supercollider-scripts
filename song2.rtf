@@ -1,0 +1,46 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs18 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\fs28 \cf0 (\
+\
+	x = [0,2,4];\
+	\
+	y = x;\
+\
+	i = 0;\
+	\
+	j = 0;\
+	\
+	t = \cf2 TempoClock\cf0 (120/60).schedAbs(0,\
+		\{\
+		\
+			\cf2 var\cf0  note = \cf2 Scale\cf0 .ionian.wrapAt(y[j%x.size]);\
+			\
+			\cf2 var\cf0  bassnote = \cf2 Scale\cf0 .ionian.wrapAt(y[0]);\
+			\
+			if(i%8==0,\{y=x+7.rand;\},\{\});\
+			\
+			if(i%2==0,\{\cf2 Synth\cf0 (\cf3 \\kick\cf0 ).set(\cf3 \\amp\cf0 ,0.25);\},\{\});\
+			\
+			if(i%4==2,\{\cf2 Synth\cf0 (\cf3 \\snare\cf0 ).set(\cf3 \\amp\cf0 ,0.25);\},\{\});\
+		\
+			if(i%2==1,\{\cf2 Synth\cf0 (\cf3 \\hats\cf0 ).set(\cf3 \\amp\cf0 ,0.1,\\len,2/3);\},\{\});\
+		\
+			\cf2 Synth\cf0 (\cf3 \\leads\cf0 ).set(\cf3 \\freq\cf0 ,2**(note/12)*440,\cf3 \\amp\cf0 ,0.05);\
+			\
+			\cf2 Synth\cf0 (\cf3 \\leads\cf0 ).set(\cf3 \\freq\cf0 ,2**(bassnote/12)*110,\cf3 \\amp\cf0 ,0.1);\
+			\
+			i = 1 + i;\
+			\
+			j = 3.rand + j;\
+			\
+			0.5;\
+			\
+		\});\
+\
+)}

@@ -1,0 +1,491 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red191\green0\blue0;\red0\green115\blue0;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs30 \cf0 \
+(\
+\
+f = \{\
+	\
+	\cf2 |pulses, steps|\cf0 \
+	\
+	\cf2 var\cf0  a = \cf2 Array\cf0 .new(steps);\
+	\
+	\cf2 var\cf0  b = \cf2 Array\cf0 .new(steps);\
+	\
+	\cf2 var\cf0  tempa = \cf2 Array\cf0 .new(steps);\
+	\
+	\cf2 var\cf0  tempb = \cf2 Array\cf0 .new(steps);\
+	\
+	\cf2 var\cf0  split;\
+	\
+	steps.do(\{\
+		\
+		\cf2 |inc|\cf0 \
+		\
+		if(	inc<pulses,\
+			\{a = tempa.add(\cf2 Array\cf0 .new(steps).add(1));\},\
+			\{b = tempb.add(\cf2 Array\cf0 .new(steps).add(0));\});\
+			\
+	\});\
+	\
+	\cf3 // --- //\cf0 \
+	\
+	while(	\{(b.size>1).and(a.size>0)\},\{\
+			\
+		split = 0;\
+		\
+		b.size.do(\{\
+		\
+			\cf2 |inc|\cf0 \
+			\
+			tempa = \cf2 Array\cf0 .new(steps).addAll(a);\
+			\
+			a[inc%a.size] = tempa[inc%a.size].add(b[inc]);\
+			\
+			split = (split+1)%a.size;\
+			\
+		\});\
+		\
+		b = a.copyRange(split,a.size-1);\
+		\
+		tempa = a.copyRange(0,split-1);\
+		\
+		a = \cf2 Array\cf0 .new(steps).addAll(tempa);\
+\
+	\});\
+		\
+	a.addAll(b).flat;\
+	\
+\};\
+\
+g = \{\
+\
+	\cf2 |array|\cf0 \
+	\
+	\cf2 var\cf0  return = \cf2 Array\cf0 .new();\
+	\
+	array.size.do(\{\
+		\
+		\cf2 |inc|\cf0 \
+		\
+		if(	(array[inc] == 0).and(return.size>0),\
+			\{return[return.size-1] = return[return.size-1] + 1;\},\
+			\{return = return ++ [0];\}\
+		);\
+				\
+	\});\
+	\
+	return+1;\
+	\
+\};\
+\
+h = \{\
+	\
+	\cf2 |lengths, pulses, slots|\cf0 \
+\
+	\cf2 var\cf0  a = \cf2 Array\cf0 .new();\
+	\
+	lengths.size.do(\{\
+		\
+		\cf2 |inc|\cf0 \
+		\
+		a = a ++ f.value( pulses.wrapAt(inc), slots ).copyRange(0,lengths.wrapAt(inc)-1);\
+		\
+	\});\
+\
+	a;\
+\
+\};\
+\
+)\
+\
+\cf3 // --- Some sweet Euclidian beats --- //\cf0 \
+\
+(\
+\
+~measure = 16;\
+\
+z = f.value(5,~measure);\
+\
+x = h.value(g.value(z)*2, [2,6,4],64);\
+\
+y = h.value(g.value(x)*2, [10,13,11], 16);\
+\
+w = h.value(g.value(y)*2, [3,1,2,4], 4);\
+\
+\cf2 Pbind\cf0 (\cf4 \\instrument\cf0 , \cf4 \\kick\cf0 , \cf4 \\dur\cf0 , \cf2 Pseq\cf0 (g.value(z)/2,\cf2 inf\cf0 )).play;\
+\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\snare\cf0 ,\
+		\cf4 \\dur\cf0 , 1/4,\
+		\cf4 \\amp\cf0 , \cf2 Pseq\cf0 (x.rotate(4)/10,\cf2 inf\cf0 ),\
+		\cf4 \\freq\cf0 , 4000,\
+		\cf4 \\res\cf0 , 0.2).play;\
+\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+		\cf4 \\dur\cf0 , \cf2 Pseq\cf0 (g.value(y)/8,\cf2 inf\cf0 ),\
+		\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ((2**g.value(y)/70),\cf2 inf\cf0 ),\
+		\cf4 \\len\cf0 , \cf2 Pseq\cf0 ((2**g.value(y)/15),\cf2 inf\cf0 )).play;\
+\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\pop\cf0 ,\
+		\cf4 \\dur\cf0 , \cf2 Pseq\cf0 (g.value(w)/16,\cf2 inf\cf0 ),\
+		\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ((g.value(w)/8),\cf2 inf\cf0 ),\
+		\cf4 \\len\cf0 , \cf2 Pseq\cf0 ((2**g.value(w)*10),\cf2 inf\cf0 ),\
+		\cf4 \\freq\cf0 , 10000).play;\
+\
+)\
+\
+~measure/2.round(1)\
+\
+\cf3 // --- //\cf0 \
+\
+(\
+\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+		\cf4 \\out\cf0 , [0,1],\
+		\cf4 \\dur\cf0 , 0.2,\
+		\cf4 \\len\cf0 , 0.4,\
+		\cf4 \\amp\cf0 , \cf2 Pseq\cf0 (f.value(5,13)/10,\cf2 inf\cf0 )).play;\
+		\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+		\cf4 \\out\cf0 , [0,1],\
+		\cf4 \\dur\cf0 , \cf2 Prand\cf0 ([0.2,0.4],\cf2 inf\cf0 ),\
+		\cf4 \\amp\cf0 , \cf2 Pseq\cf0 (f.value(9,13)/10,\cf2 inf\cf0 )).play;\
+\
+\cf2 Pbind\cf0 (\cf4 \\instrument\cf0 , \cf4 \\kick\cf0 , \cf4 \\out\cf0 , [0,1], \cf4 \\dur\cf0 , 0.2, \cf4 \\amp\cf0 , \cf2 Pseq\cf0 (f.value(2,13),\cf2 inf\cf0 )).play;\
+\
+\cf2 Pbind\cf0 (\cf4 \\instrument\cf0 , \cf4 \\snare\cf0 , \cf4 \\out\cf0 , [0,1], \cf4 \\dur\cf0 , 0.2, \cf4 \\amp\cf0 , \cf2 Pseq\cf0 (f.value(1,13).rotate(7)/2,\cf2 inf\cf0 )).play;\
+\
+\cf2 Pmono\cf0 (	\cf4 \\reese\cf0 ,\
+		\cf4 \\out\cf0 , [0,2],\
+		\cf4 \\dur\cf0 , 0.2*13/\cf2 Prand\cf0 ([2],\cf2 inf\cf0 ),\
+		\cf4 \\amp\cf0 , 0.13,\
+		\cf4 \\wobble\cf0 ,\cf2 Prand\cf0 ([1/3,1,3,5,13],\cf2 inf\cf0 ),\
+		\cf4 \\degree\cf0 , \cf2 Pseq\cf0 ([0,0,-1,-1,\cf2 Prand\cf0 ([1,2],1),\cf2 Prand\cf0 ([3,2],1),3,\cf2 Prand\cf0 ([2,3],1)],\cf2 inf\cf0 ),\
+		\cf4 \\scale\cf0 ,[0,3,5,7,10]).play;\
+\
+z;\
+\
+g.value(f.value(7,16));\
+\
+)\
+\
+\cf3 // --- //\cf0 \
+\
+(\
+\
+z = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\leads\cf0 ,\
+				\cf4 \\amp\cf0 , \cf2 Pseq\cf0 (f.value(rand(23,31),32)),\
+				\cf4 \\degree\cf0 , \cf2 Pseq\cf0 ((f.value(rand(13,31),32)+f.value(rand(11,19),32)+(f.value(rand(3,11),32)*2) * (f.value(rand(21,31),32)*2-1)).integrate +.t [0,2,4] - 4),\
+				\cf4 \\dur\cf0 , 0.5,\
+				\cf4 \\scale\cf0 , [0,2,3,5,7,8,10]);\
+\
+t = \cf2 TempoClock\cf0 (140/60);\
+\
+t.schedAbs(0,\{\
+	\
+	\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\leads\cf0 ,\
+			\cf4 \\amp\cf0 , \cf2 Pseq\cf0 (f.value(rand(23,31),32)),\
+			\cf4 \\degree\cf0 , \cf2 Pseq\cf0 ((f.value(rand(13,31),32)+f.value(rand(11,19),32)+(f.value(rand(3,11),32)*2) * (f.value(rand(21,31),32)*2-1)).integrate +.t [0,2,4] - 4),\
+			\cf4 \\dur\cf0 , 0.5,\
+			\cf4 \\scale\cf0 , [0,2,3,5,7,8,11]).play;\
+	\
+	32;\
+	\
+\});\
+\
+101.do(\{\
+\
+	\cf2 |ind|\cf0 \
+	\
+	ind.do(\{\
+		\
+		\cf2 |inc|\cf0 \
+		\
+		f.value(inc,ind).postln;\
+		\
+	\});\
+	\
+\});\
+\
+)\
+\
+\cf3 // --- //\cf0 \
+\
+(\
+\
+t = \cf2 TempoClock\cf0 (140/60);\
+\
+~pop1_1 = \cf2 Prand\cf0 ([\cf2 Pseq\cf0 (f.value(1,8)),\cf2 Pseq\cf0 (f.value(2,8))],\cf2 inf\cf0 );\
+\
+~pop2_1 = \cf2 Prand\cf0 ([\cf2 Pseq\cf0 (f.value(3,8)),\cf2 Pseq\cf0 (f.value(2,8))],\cf2 inf\cf0 );\
+\
+~pop3_1 = \cf2 Prand\cf0 ([\cf2 Pseq\cf0 (f.value(3,12)),\cf2 Pseq\cf0 (f.value(3,8)),\cf2 Pseq\cf0 (f.value(4,16))],\cf2 inf\cf0 );\
+\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\pop\cf0 ,\
+		\cf4 \\amp\cf0 , ~pop1_1*6/7,\
+		\cf4 \\dur\cf0 , 1/4,\
+		\cf4 \\len\cf0 , 15,\
+		\cf4 \\out\cf0 , [0,1],\
+		\cf4 \\res\cf0 , 1,\
+		\cf4 \\freq\cf0 , 300).play(t);\
+		\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\pop\cf0 ,\
+		\cf4 \\amp\cf0 , ~pop2_1*3/5,\
+		\cf4 \\dur\cf0 , 1/8,\
+		\cf4 \\len\cf0 , 10,\
+		\cf4 \\out\cf0 , [1],\
+		\cf4 \\res\cf0 , 0.25,\
+		\cf4 \\freq\cf0 , 5000).play(t);\
+	\
+\cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\pop\cf0 ,\
+		\cf4 \\amp\cf0 , ~pop3_1/2,\
+		\cf4 \\dur\cf0 , 1/16,\
+		\cf4 \\len\cf0 , 10,\
+		\cf4 \\out\cf0 , [0],\
+		\cf4 \\res\cf0 , 0.25,\
+		\cf4 \\freq\cf0 , 2500).play(t);\
+	\
+)\
+\
+(\
+\
+t = \cf2 TempoClock\cf0 ( 140/60 );\
+\
+a = 10;\
+b = 11;\
+c = 12;\
+d = 13;\
+e = 14;\
+f = 15;\
+\
+\cf3 // --- High Hats --- //\cf0 \
+\
+~hh1 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [2,[2,1,1,2,2],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [4,1,1,3,4]/4 )\
+				);\
+				\
+~hh2 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [2,[1,1,1,1],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [2,2,3,4]/4 )\
+				);\
+				\
+~hh3 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [2,[2,2],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [3,3]/4 )\
+				);\
+				\
+~hh4 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [2,[1,1,1,1,1,1,1,1],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [4,3,2,1,3,4,2,1]/4 )\
+				);\
+				\
+~hh5 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\hats\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [2,[3,3,2],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [2,3,4]/4 )\
+				);\
+				\
+\cf3 // --- Kick Drum --- //\cf0 \
+\
+~kk1 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\kick\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [2,[1],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [3]/4 )\
+				);\
+				\
+~kk2 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\kick\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [2,[3,3,2],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [4,3,3]/16 )\
+				);\
+\
+\cf3 // --- Snare Drum --- //\cf0 \
+\
+~sn1 = \cf2 Pbind\cf0 (	\cf4 \\instrument\cf0 , \cf4 \\snare\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [4,[1,1],1].convertRhythm ),\
+					\cf4 \\amp\cf0 , \cf2 Pseq\cf0 ( [0,2]/5 )\
+				);\
+\
+\cf3 // --- Bass --- //\cf0 \
+\
+~bs1 = \cf2 Pmono\cf0 (	\cf4 \\reese\cf0 ,\
+					\cf4 \\dur\cf0 , \cf2 Pseq\cf0 ( [16,[1,1,1,1],1].convertRhythm ),\
+					\cf4 \\degree\cf0 , \cf2 Pseq\cf0 ([0,3,-3,-1]),\
+					\cf4 \\wobble\cf0 , 140*7/8/60*Prand([0,1,2,3,5,7,11],inf),\
+					\cf4 \\amp\cf0 , 1/15\
+				);\
+\
+\cf3 // --- //\cf0 \
+				\
+\cf3 //z = Pseq([~hh1,~hh2,~hh3,~hh4,~hh5]);\cf0 \
+\
+z = \cf2 Prand\cf0 ([~hh1,~hh2,~hh3,~hh4,~hh5],\cf2 inf\cf0 );\
+\
+z = \cf2 Pbindf\cf0 (z, \cf4 \\out\cf0 , [0,1], \cf4 \\len\cf0 , \cf2 Prand\cf0 ([1,2,3]/30+0.1,\cf2 inf\cf0 ), \cf4 \\amp\cf0 , 1/10);\
+\
+z.play(t);\
+\
+y = \cf2 Prand\cf0 ([~kk1,~kk2],\cf2 inf\cf0 );\
+\
+y = \cf2 Pbindf\cf0 (y, \cf4 \\out\cf0 , [0,1], \cf4 \\amp\cf0 , 0.075);\
+\
+y.play(t);\
+\
+x = \cf2 Prand\cf0 ([~sn1],\cf2 inf\cf0 );\
+\
+x = \cf2 Pbindf\cf0 (x, \cf4 \\out\cf0 , [0,1]);\
+\
+x.play(t);\
+\
+w = \cf2 Prand\cf0 ([~bs1],\cf2 inf\cf0 );\
+\
+w = \cf2 Pbindf\cf0 (w, \cf4 \\out\cf0 , [0,1]);\
+\
+w.play(t);\
+\
+)\
+\
+\cf3 // --- //\cf0 \
+\
+( instrument: \cf4 'snare'\cf0 , amp: 1.0 ).play;\
+\
+( instrument: \cf4 'kick'\cf0 , amp: 1.0 ).play;\
+\
+( instrument: \cf4 'hats'\cf0  ).play;\
+\
+( instrument: \cf4 'reese'\cf0  ).play;\
+\
+( instrument: \cf4 'pop'\cf0 , out: [0,1], dur: 6).play;\
+\
+\cf3 // --- //\cf0 \
+\
+(\
+\
+\cf2 SynthDef\cf0 ( \cf4 'pop'\cf0 ,\
+\{\
+	\
+	\cf2 |freq = 2000, amp = 0.6, out = 0, len = 200, res = 1|\cf0 \
+	\
+	\cf2 var\cf0  output;\
+	\
+	output = \cf2 PinkNoise\cf0 .ar()*amp;\
+	\
+	output = output*\cf2 EnvGen\cf0 .ar( \cf2 Env\cf0 ([1,0],[len/1000]), doneAction:2 );\
+	\
+	output = \cf2 BPF\cf0 .ar( output, freq, res );\
+	\
+	\cf2 Out\cf0 .ar( out, output );\
+	\
+\}).add;\
+\
+\cf2 SynthDef\cf0 ( \cf4 'reese'\cf0 ,\
+\{\
+\
+	\cf2 |freq = 440, amp = 0.2, dur = 1, out = 0, res = 0.3, xover = 0.5, wobble = 0|\cf0 \
+\
+	\cf2 var\cf0  sub, mid, hi, sum, env, lfomid, lfohi, lfo;\
+	\
+	\
+	lfomid = \cf2 SinOsc\cf0 .kr( 1.0.rand, pi/2, 9000, 10000 );\
+		\
+	lfohi = \cf2 SinOsc\cf0 .kr( 0.5.rand, pi/2, 5000, 10000 );\
+	\
+	\
+	lfo = \cf2 SinOsc\cf0 .kr( wobble, pi/2, 9000, 9500 );\
+	\
+	\
+	sub = (\cf2 SinOsc\cf0 .ar( [freq*3/16 + 0.25.rand,freq/8 + 0.25.rand,freq*3/8 + 0.25.rand,freq/4 + 0.25.rand,freq*3/4 + 0.25.rand,freq/2 + 0.25.rand] )*0.5) + (\cf2 PinkNoise\cf0 .ar()*0.2);\
+	\
+	sub = \cf2 LPF\cf0 .ar( sub, 220 );\
+	\
+	sub = \cf2 HPF\cf0 .ar( sub, 30 );\
+	\
+	sub = sub/8;\
+	\
+	\
+	mid = \cf2 RLPF\cf0 .ar( \cf2 Saw\cf0 .ar( [freq/8 + 1.0.rand, freq/4 + 2.0.rand] )*0.15, freq*12*xover, 0.4);\
+	\
+	mid = mid + \cf2 BPF\cf0 .ar( \cf2 WhiteNoise\cf0 .ar(), [freq+10.0.rand,freq*3+10.0.rand,freq*5+10.0.rand], 0.05 )*0.5;\
+	\
+	mid = \cf2 BRF\cf0 .ar( mid, lfomid, res );\
+	\
+	\
+	hi = \cf2 RHPF\cf0 .ar( \cf2 Pulse\cf0 .ar( [freq/4 + 0.5.rand, freq/2 + 0.25.rand], 0.5 )*0.2, freq*12*xover, 0.4);\
+	\
+	hi = \cf2 BRF\cf0 .ar( hi, lfohi, res );\
+	\
+	\
+	mid = \cf2 HPF\cf0 .ar( mid, 220 );\
+	\
+	\
+	sum = \cf2 LPF\cf0 .ar( sub + mid + hi, lfo );\
+	\
+	sum = sum * amp;\
+	\
+	\cf2 Out\cf0 .ar( 0, sum ! 2 );\
+		\
+\}).add;\
+\
+\cf2 SynthDef\cf0 ( \cf4 \\hats\cf0 , \{\
+\
+	\cf2 |amp=0.1,out=0,len=0.1|\cf0 \
+	\
+	\cf2 var\cf0  env1, output;\
+	\
+	env1 = \cf2 EnvGen\cf0 .ar( \cf2 Env\cf0 .new([0,1,0],[0.0005,len]), doneAction:2 );\
+	\
+	output = \cf2 WhiteNoise\cf0 .ar()*env1*env1*env1*env1;\
+	\
+	output = \cf2 LPF\cf0 .ar( output, 17000 + \cf2 Rand\cf0 ( -1000, 1000 ) );\
+	\
+	output = \cf2 FreeVerb\cf0 .ar( output, 1/3, 0.8 + \cf2 Rand\cf0 (-0.1,0.1), 0.05 );\
+	\
+	output = \cf2 HPF\cf0 .ar( output, 5000 + \cf2 Rand\cf0 (-500, 500) );\
+	\
+	\cf2 Out\cf0 .ar(out, output*amp);\
+	\
+\}).add;\
+\
+\cf2 SynthDef\cf0 ( \cf4 \\snare\cf0 , \{\
+\
+	\cf2 |amp=0.1,out=0|\cf0 \
+	\
+	\cf2 var\cf0  env1, output;\
+	\
+	env1 = \cf2 EnvGen\cf0 .ar( \cf2 Env\cf0 .new([0,1,0],[0.001,1/3]), doneAction:2 );\
+	\
+	output = \cf2 WhiteNoise\cf0 .ar()*env1*env1*env1*env1*amp;\
+	\
+	output = \cf2 LPF\cf0 .ar( output, 7000 );\
+	\
+	output = \cf2 FreeVerb\cf0 .ar( output, 1/3, 0.8, 0.05 );\
+	\
+	\cf2 Out\cf0 .ar(out, output);\
+	\
+\}).add;\
+\
+\cf2 SynthDef\cf0 ( \cf4 \\kick\cf0 , \{\
+	\
+	\cf2 |amp=0.1,out=0|\cf0 \
+	\
+	\cf2 var\cf0  output, env1, env2;\
+	\
+	env1 = \cf2 EnvGen\cf0 .ar( \cf2 Env\cf0 .new([0,1,0],[0.005,0.07]), doneAction:2 );\
+	\
+	env2 = \cf2 EnvGen\cf0 .ar( \cf2 Env\cf0 .new([0,1,0],[0.0001,0.005]) );\
+	\
+	output = \cf2 SinOsc\cf0 .ar(200*env1) + \cf2 SinOsc\cf0 .ar(100*env1,env1);\
+	\
+	output = output + (\cf2 WhiteNoise\cf0 .ar()*0.075*env2);\
+	\
+	output = \cf2 LPF\cf0 .ar( output, env1*4000 );\
+	\
+	output = output * amp * env1;\
+	\
+	\cf2 Out\cf0 .ar(out, output);\
+	\
+\}).add;\
+\
+)\
+}

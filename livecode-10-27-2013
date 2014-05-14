@@ -1,0 +1,15 @@
+(
+
+SynthDef(\pulse, {
+
+	|freq = 440, dur = 0.1|
+
+	var tone, env;
+
+	tone = Pulse.ar(freq);
+
+	env = EnvGen.ar(Env([0,1,0],[0.005,dur]), doneAction:2);
+
+}).store;
+
+)

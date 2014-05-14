@@ -5,13 +5,31 @@
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 
 \f0\fs30 \cf0 \
-\cf2 // figure, queue, player, instrument, sequencer\cf0 \
+\cf2 // figure, measure, player, instrument, sequencer\cf0 \
 \
 \cf2 /*\
 \
 pass figure parameter list, including length in beats, start beat and process function referencing self\
 \
 */\
+\
+There is a global melodic note/interval\
+There is a global beat struture\
+Players will use "riffs" and note-generators/counterpoint/set-algebra-on-arpeggios and arrange these to accomodate the beat global note/interval and beat structure\
+\
+// --- //\
+\
+Global note structure will have twiddle factors such as rising/falling on pitch bend as well as dissonance/consonance\
+\
+Global rhythm structure can be set by specifying a list of divisors that define the time signature\
+\
+Global rhythm structure has twiddle factors for varying depth levels including variety, A-B/A-A-A-B/A-B-A-C modes and manipulations thereof, note density, syncopation, note splitting/merging probabilities, etc\'85 \
+\
+// --- //\
+\
+Environment -> Conductor -> Players -> Phrases -> Measures -> Figures -> Notes => \{time, duration, degree\}\
+\
+// --- //\
 \
 players are figure factories\
 \
@@ -63,7 +81,7 @@ measure[]\
 	\
 \};\
 \
-\cf3 ~createQueue\cf0  = \{\
+\cf3 ~createMeasure\cf0  = \{\
 \
 	(\
 	\
@@ -85,7 +103,7 @@ measure[]\
 				\
 				if(self.currentFigure!=\cf5 nil\cf0 ,\{\
 					\
-					if(self.currentFigure.doneCheck(),\{\
+					if(self.currentFigure.doneCheck(currentbeat, \cf4 shortest_beat_division\cf0 ),\{\
 					\
 						self.currentFigure = \cf5 nil\cf0 ;\
 						\
@@ -95,7 +113,7 @@ measure[]\
 				\
 				\cf2 // check if there is a figure needs to be played\cf0 \
 				\
-				if(self.figures[0].playCheck(),\{\
+				if(self.figures[0].playCheck(currentbeat, shortest_beat_division),\{\
 				\
 					self.currentFigure = self.figures.removeAt(0);\
 					\
@@ -132,7 +150,7 @@ measure[]\
 \
 )\
 \
-a = \cf3 ~createQueue\cf0 .();\
+a = \cf3 ~createMeasure\cf0 .();\
 \
 a.addFigure(2, 0, ());\
 \
@@ -146,6 +164,27 @@ a.playCheck(0, 1/32);\
 \
 (\
 \
+t = TempoClock(110/60);\
 \
+q = ~createMeasure.();\
+\
+q.addFigure(2,0,());\
+q.addFigure(2,2,());\
+q.addFigure(2,4,());\
+q.addFigure(2,6,());\
+\
+t.sched(0,\{\
+\
+	q.process(t.beats,1);\
+\
+	postln(q.figures.size);\
+\
+	postln(t.beats);\
+	\
+	postln("");\
+\
+	1;\
+	\
+\});\
 \
 )}

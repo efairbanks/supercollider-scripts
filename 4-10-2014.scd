@@ -1,0 +1,73 @@
+(
+e=();
+e.scale=Scale.aeolian;
+e.beat=0;
+e.root=0;
+e.offset=35;
+e.rootQueue=[];
+e.degreeQueue=[];
+e.targetQueue=[];
+e.figureQueue=[];
+e.target=50;
+e.instrument=\vibro;
+t=TempoClock(140/30).sched(0,{
+  var note, degree, freq;
+  if(e.beat%8==0,{
+    if(e.rootQueue.size<1,{e.rootQueue=[0]++(3!7)});
+    e.rootQueue.postln;
+    e.root=e.rootQueue.sum;e.rootQueue.pop;
+  });
+  if(e.beat%4==0,{
+    if(e.targetQueue.size<1,{e.targetQueue=([2,2,-1,-3]!4).flat});
+    e.target=45+e.targetQueue.sum;e.targetQueue.pop;
+  });
+  e.instrument=[\vibro,\tone].wrapAt((e.beat/4).asInteger);
+  if(e.beat%4==0,{
+    3.do({|inc|
+    var note, degree, freq;
+      degree=inc*2+e.root+e.offset;
+      while({degree>(e.offset+4)},{degree=degree-7});
+      note=e.scale.performDegreeToKey(degree);
+      freq=note.midicps;
+      Synth(e.instrument,[\freq,freq]);
+    });
+  });
+  if(e.degreeQueue.size<1,{e.degreeQueue=[0,4,5]});
+  degree=e.root+e.offset+e.degreeQueue.sum;e.degreeQueue.pop;
+  while({e.target+4<degree},{degree=degree-7});
+  while({e.target-4>degree},{degree=degree+7});
+  note=e.scale.performDegreeToKey(degree);
+  freq=note.midicps;
+  Synth(\vibro,[\freq,freq]);
+  e.beat=e.beat+1;
+  1;
+});
+)
+// --- //
+(
+SynthDef(\vibro,{|freq=440|
+  var out;
+  freq=SinOsc.ar(7,0,10,freq);
+  out=EnvGen.ar(Env([0,1,0],[0.005,2.5]),doneAction:2);
+  out=out**8;
+  out=out*SinOsc.ar(freq+SinOsc.ar(freq*4,0,freq*5*(0.5-out)));
+  out=out*0.1;
+  Out.ar(0,out!2);
+}).store;
+SynthDef(\tone,{|freq=440|
+  var out;
+  out=EnvGen.ar(Env([0,1,0],[0.005,2.5]),doneAction:2);
+  out=out**8;
+  out=out*SinOsc.ar(freq+SinOsc.ar(freq*5,0,freq*5*(1-out)));
+  out=out*0.1;
+  Out.ar(0,out!2);
+}).store;
+SynthDef(\xylo,{|freq=440|
+  var out;
+  out=EnvGen.ar(Env([0,1,0],[0.005,2.5]),doneAction:2);
+  out=out**5;
+  out=out*SinOsc.ar(freq+SinOsc.ar(freq*5,0,freq*4*(1-out)));
+  out=out*0.1;
+  Out.ar(0,out!2);
+}).store;
+)

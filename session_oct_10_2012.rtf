@@ -1,0 +1,105 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green102\blue0;\red0\green0\blue255;
+\red102\green102\blue191;\red0\green0\blue191;\red0\green115\blue0;\red51\green51\blue191;\red191\green0\blue0;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs34 \cf2 \
+(\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~melseq\cf2  = [0,3,4,2,-1,1,2,4];\
+\
+\cf3 ~ticks\cf2  = 32;\
+\
+\cf3 ~interp\cf2  = \{\
+\
+	\cf4 |from, to, depth, chaos|\cf2 \
+	\
+	\cf4 var\cf2  n = from.size;\
+	\
+	from = from.add(to);\
+	\
+	n.do(\{\
+	\
+		\cf4 |i|\cf2 \
+		\
+		\cf4 var\cf2  randval, mean, order;\
+		\
+		randval = rrand(from[i],from[i+1]);\
+		\
+		mean = (from[i]+from[i+1])/2;\
+		\
+		order = 1-chaos;\
+		\
+		from = from.add((randval*chaos)+(mean*order));\
+		\
+	\});\
+	\
+	from.removeAt(n);\
+	\
+	from = from.perfectShuffle;\
+	\
+	from = from.round(1);\
+	\
+	if(depth==0,\{\
+		\
+		from;\
+		\
+	\},\{\
+		\
+		\cf5 thisFunction\cf2 .(from, to, depth-1, chaos);\
+		\
+	\});\
+	\
+\}\
+\
+)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf0 (\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~qqq\cf2  = \cf3 ~interp\cf2 .([0,4,2,5,0,5,1,-1],0,3,6/7);\
+\
+\cf3 ~qqq\cf2  = \cf3 ~qqq\cf2  ++ (\cf3 ~interp\cf2 .([0,4,2,5,0,5,1,-1],0,3,2/7)+7);\
+\
+\cf3 ~qqq\cf2  = (\cf3 ~qqq\cf2 .perfectShuffle()).clump(2);\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf6 Pbind\cf2 (	\cf7 \\degree\cf2 , \cf6 Pseq\cf2 (\cf3 ~qqq\cf2 , 2),\
+			\cf7 \\dur\cf2 , 0.1,\
+			\cf7 \\amp\cf2 , \cf6 Prand\cf2 ([\cf6 Pseq\cf2 ([1,0,1,0,1,1])], \cf8 inf\cf2 ),\
+			\cf7 \\scale\cf2 , \cf6 Scale\cf2 .minor).play;\
+\
+)\
+\
+((\cf3 ~interp\cf2 .([0,4,2,5,0,5,1,-1],0,3,6/7) ++ \cf3 ~interp\cf2 .([0,4,2,5,0,5,1,-1],0,3,6/7))*[1,0,0,1,0,0,1,0]).plot;\
+\
+rrand(3,5)\
+\
+[3].flat\
+\
+10.do(\{\cf4 |i|\cf2  i;\});\
+\
+\cf9 /*\
+\
+[from]\
+\
+[from, r1]\
+\
+[[from, r1-1], [r1, r1-2]]\
+\
+[[[from, r1-1-1],[r1-1, r1-1-2]],[[],[]]]\
+\
+\
+generate buddy for 0\
+\
+generate buddy for 0 and n/2\
+\
+generate buddy for 0 and \
+\
+\
+*/\cf2 \
+}

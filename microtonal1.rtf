@@ -1,0 +1,45 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;\red0\green115\blue0;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs18 \cf2 \
+(\
+\
+i = 15;\
+\
+~beat = 0;\
+\
+t = \cf3 TempoClock\cf2 (160/60).sched(0,\
+\
+	\{\
+		\
+		(instrument:\cf4 \\leads\cf2 ,freq: 440*(i/10)/2).play;\
+		\
+		if(~beat%2==0,\{(instrument:\cf4 \\leads\cf2 ,freq:440*(i/10)/16).play;1.postln;\});\
+		\
+		if(~beat%3==0,\{(instrument:\cf4 \\leads\cf2 ,freq:440*(i/10)/8).play;1.postln;\});\
+		\
+		i = i + [0,4,4,-4,-4,2,2,2,2,-2,-2,-2,-2,-1,1].choose;\
+		\
+		if(~beat%8==0,\{i=15\});\
+		\
+		if(~beat%16==0,\{i=12\});\
+		\
+		if(3.rand==0,\{\
+			\
+			t.sched(0.76,\{(instrument:\cf4 \\leads\cf2 ,freq: 440*(i+([-2,2].choose)/10)/2).play;\
+			\
+		\})\});\
+		\
+		if(i<10,\{i=11\});\
+		if(i>20,\{i=19\});\
+		\
+		~beat = ~beat + 1;\
+		\
+		1.5;\
+		\
+	\});\
+	\
+)}

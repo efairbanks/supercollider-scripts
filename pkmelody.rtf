@@ -1,0 +1,182 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red96\green96\blue96;\red191\green0\blue0;
+\red0\green115\blue0;}
+\deftab560
+\pard\pardeftab560
+
+\f0\fs26 \cf0 \
+(\
+\
+\cf2 MIDIClient\cf0 .init;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\pardirnatural
+\cf0 ~pkMIDIout	= \cf2 MIDIOut\cf0 .new(\cf2 MIDIClient\cf0 .destinations.indexOf(\cf2 MIDIOut\cf0 .findPort(\cf3 "padKONTROL"\cf0 , \cf3 "CTRL"\cf0 )));\
+\
+~pkMIDIin	= \cf2 MIDIIn\cf0 .connect(0,\cf2 MIDIClient\cf0 .sources.indexOf(\cf2 MIDIIn\cf0 .findPort(\cf3 "padKONTROL"\cf0 , \cf3 "PORT A"\cf0 )));\
+\
+\cf4 // --- //\cf0 \
+\
+~pkInit = \{\
+	\
+\cf2 |midiport|\cf0 \
+	\
+midiport.sysex(\cf2 Int8Array\cf0 [0x\cf2 F0\cf0 , 0x42, 0x40, 0x6E, 0x08, 0x00, 0x00, 0x01, 0x\cf2 F7\cf0 ,0x\cf2 F0\cf0 , 0x42, 0x40, 0x6E, 0x08, 0x3F, 0x2A, 0x00, 0x00, 0x05, 0x05, 0x05, 0x7F, 0x7E, 0x7F, 0x7F, 0x03, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0d, 0x0E, 0x0F, 0x10, 0x\cf2 F7\cf0 ,0x\cf2 F0\cf0 ,0x42,0x40,0x6E,0x08,0x3F,0x0A,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x29,0x29,0x29,0x\cf2 F7\cf0 ]);\
+\
+\};\
+\
+\cf4 // --- //\cf0 \
+\
+~pkTest = \{\
+\
+\cf2 |midiport|\cf0 	\
+	\
+midiport.sysex(\cf2 Int8Array\cf0 [0x\cf2 F0\cf0 ,0x42,0x40,0x6E,0x08,0x22,0x04,0x00,0x59,0x45,0x53,0x\cf2 F7\cf0 ]);\
+	\
+\};\
+\
+\cf4 // --- //\cf0 \
+\
+~pkSetLight = \{\
+\
+\cf2 |midiport, light, state|\cf0 \
+	\
+midiport.sysex(\cf2 Int8Array\cf0 [0x\cf2 F0\cf0 ,0x42,0x40,0x6E,0x08,0x01,light,0x20*state,0x\cf2 F7\cf0 ]);\
+	\
+\};\
+\
+\cf4 // --- //\cf0 \
+\
+~pkSetNum = \{\
+\
+\cf2 |midiport, num|\cf0 \
+	\
+midiport.sysex(\cf2 Int8Array\cf0 [	0x\cf2 F0\cf0 ,0x42,0x40,0x6E,0x08,0x22,0x04,0x00,\
+								0x30+(num/100%10),\
+								0x30+(num/10%10),\
+								0x30+(num%10),\
+								0x\cf2 F7\cf0 ]);\
+	\
+\};\
+\
+\cf4 // --- //\cf0 \
+\
+\{\
+	\
+~step = 0;\
+\
+~loop = \cf2 Buffer\cf0 .read(s,\cf3 "break.wav"\cf0 );\
+\
+\cf2 SynthDef\cf0 (	\cf5 \\looper\cf0 ,\
+			\{\
+				\
+				\cf2 |bufnum, tempo=120, t_restart=0, offset=0, pitch=1, granulize=0|\cf0 \
+				\
+				\cf4 // --- //\cf0 \
+				\
+				\cf2 var\cf0  gloop, loop, phase, bufdur, loopdur, output;\
+				\
+				bufdur = \cf2 BufDur\cf0 .kr(bufnum);\
+				\
+				loopdur = (30/tempo)*8;\
+				\
+				\cf4 // --- //\cf0 \
+				\
+				phase = \cf2 Phasor\cf0 .ar(t_restart,(loopdur*\cf2 SampleRate\cf0 .ir).reciprocal,0,1,offset);\
+				\
+				\cf4 // --- //\cf0 \
+				\
+				gloop = \cf2 Warp1\cf0 .ar(1,bufnum,phase,pitch,interp:4,overlaps:2);\
+				\
+				\cf4 // --- //\cf0 \
+				\
+				loop = \cf2 BufRd\cf0 .ar(1,bufnum,phase*\cf2 BufFrames\cf0 .kr(bufnum),loop:1,interpolation:4);\
+				\
+				\cf4 // --- //\cf0 \
+				\
+				output = (1-granulize)*loop;\
+				\
+				output = output + (gloop*granulize);\
+				\
+				\cf2 Out\cf0 .ar(0, output ! 2);\
+				\
+			\}).store();\
+			\
+s.sync;\
+			\
+~tempo = 140;\
+\
+t = \cf2 TempoClock\cf0 .new(~tempo/30);\
+			\
+~looper = \cf2 Synth\cf0 .new(\cf5 \\looper\cf0 ,[\cf5 \\bufnum\cf0 ,~loop.bufnum,\cf5 \\tempo\cf0 ,~tempo]);\
+\
+t.schedAbs(	0,\
+				\{\
+					\
+					~looper.set(\cf5 \\t_restart\cf0 ,1,\cf5 \\offset\cf0 ,~step/8,\cf5 \\tempo\cf0 ,~tempo, \cf5 \\granulize\cf0 , 0);\
+					\
+					~pkSetNum.value(~pkMIDIout,~step);\
+					\
+					16.do(\{\
+						\
+						\cf2 |inc|\cf0 \
+						\
+						~pkSetLight.value(~pkMIDIout,inc,0);\
+						\
+					\});\
+					\
+					~pkSetLight.value(~pkMIDIout,~step,1);\
+					\
+					~step = (~step + 1) % 8;\
+					\
+					1;\
+					\
+				\});\
+\
+\}.fork;\
+\
+\
+\cf4 // --- //\cf0 \
+\
+~pkMIDIin.sysex = \{\
+	\
+	\cf2 |src, sysex|\cf0 \
+	\
+	sysex[5].switch(\
+	\
+		0x45,\{	[\cf5 \\pad\cf0 ,(sysex[6]%64),(sysex[6]/64).round].postln;\
+				if(	(sysex[6]/64).round == 1,\
+					\{~step = (sysex[6]%64)\},\
+					\{\});\
+				\},\
+			\
+		0x49,\{	[\cf5 \\knob\cf0 ,sysex[6],sysex[7]].postln;\
+				~pkSetNum.value(~pkMIDIout,sysex[7]);\
+				\},\
+		\
+		0x43,\{	[\cf5 \\rotary\cf0 ,sysex[7]].postln;\
+				if(sysex[7]==1,\{~tempo=~tempo+1\},\{~tempo=~tempo-1\});\
+				~pkSetNum.value(~pkMIDIout,~tempo);\
+				if(~tempo<0,\{~tempo=0\},\{\});\
+				t.tempo = ~tempo/30;\
+				\},\
+		\
+		0x48,\{\
+				[\cf5 \\button\cf0 ,sysex[6],sysex[7]].postln;\
+			\},\
+		\
+		0x4b,\{\
+				[\cf5 \\x\cf0 ,sysex[6],\cf5 \\y\cf0 ,sysex[7]].postln;\
+			\}\
+	\
+	);\
+\
+\};\
+\
+\cf4 // --- //\cf0 \
+\
+\pard\pardeftab560
+\cf0 )\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\pardirnatural
+\cf0 \
+}

@@ -1,0 +1,120 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red191\green0\blue0;\red0\green0\blue191;
+\red0\green115\blue0;\red0\green0\blue255;\red255\green102\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs26 \cf2 \
+\cf3 // --- Setup --- //\cf2 \
+\
+(\
+\
+\cf4 SynthDef\cf2 (\cf5 \\simplesin\cf2 ,\{\
+\
+	\cf6 |freq=440, amp=0.02|\cf2 \
+\
+	\cf6 var\cf2  out = \cf4 SinOsc\cf2 .ar(freq)*amp*\cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([0,1,0],[1,4]),doneAction:2);\
+\
+	\cf4 Out\cf2 .ar(0,out!2);\
+	\
+\}).store;\
+\
+\cf4 SynthDef\cf2 (\cf5 \\simplenoise\cf2 ,\{\
+\
+	\cf6 |freq=440, amp=0.8|\cf2 \
+\
+	\cf6 var\cf2  out, tone, env;\
+	\
+	env = \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([0,1,0],[1,4]),doneAction:2);\
+	\
+	tone = \cf4 BPF\cf2 .ar(\cf4 PinkNoise\cf2 .ar(), freq, 0.05*env);\
+\
+	out = tone*amp*env;\
+\
+	\cf4 Out\cf2 .ar(0,out!2);\
+	\
+\}).store;\
+\
+\cf4 SynthDef\cf2 (\cf5 \\beepdecay\cf2 ,\{\
+\
+	\cf6 |freq=440, amp=0.2|\cf2 \
+	\
+	\cf6 var\cf2  env, out, tone;\
+	\
+	env = \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([0.0001,1,0.0001],[8,8],\cf5 'exponential'\cf2 ),doneAction:2)*\cf4 LPF\cf2 .ar(\cf4 Saw\cf2 .ar(\cf4 Rand\cf2 (3, 8)),4);\
+	\
+	tone = \cf4 Pulse\cf2 .ar(freq*2+\cf4 SinOsc\cf2 .ar(0.2+\cf4 Rand\cf2 (0, 0.6),0,freq/(\cf4 Rand\cf2 (10, 40))),0.2*env);\
+	\
+	out = \cf4 LPF\cf2 .ar(\cf4 HPF\cf2 .ar(tone*env*amp,2000),4000);\
+	\
+	\cf4 Out\cf2 .ar(0,out!2);\
+	\
+	\
+\}).store;\
+\
+\cf4 SynthDef\cf2 (\cf5 \\noisedecay\cf2 ,\{\
+	\
+	\cf6 |freq=3000, amp=0.2|\cf2 \
+	\
+	\cf6 var\cf2  noise, env, env2, out;\
+	\
+	env = \cf4 EnvGen\cf2 .ar(\cf4 Env\cf2 ([1,0.0001],[8],\cf5 'exponential'\cf2 ),doneAction:2);\
+	\
+	env2 = env*(1-env);\
+	\
+	noise = \cf4 BPF\cf2 .ar(\cf4 PinkNoise\cf2 .ar(),freq+(env*freq/2)-(freq/2),0.025+(env*0.2));\
+	\
+	noise = noise + \cf4 BPF\cf2 .ar(\cf4 PinkNoise\cf2 .ar(),400+\cf4 SinOsc\cf2 .ar(20,0,200),0.02+(0.1*env2));\
+	\
+	out = noise*env;\
+	\
+	\cf4 Out\cf2 .ar(0,out!2);\
+	\
+\}).store;\
+\
+)\
+\
+\cf3 // --- Play --- //\cf2 \
+\
+(\
+\
+\cf7 ~freq\cf2  = 440;\
+\
+\cf7 ~intervals\cf2  = [3/2,4/3,2,1/2,2/3,1/3,1/2,1];\
+\
+t = \cf4 TempoClock\cf2 (160/60).sched(0,\{\
+	\
+	\cf6 var\cf2  newfreq;\
+	\
+	\cf4 Synth\cf2 (\cf5 \\simplesin\cf2 ,[\cf5 \\freq\cf2 ,\cf7 ~freq\cf2 ]);	\
+	\
+	newfreq = \cf7 ~freq\cf2  * \cf7 ~intervals\cf2 .choose;\
+	\
+	if((newfreq>200).and(newfreq<12000),\{\
+	\
+		\cf7 ~freq\cf2  = newfreq;\
+		\
+	\});\
+	\
+	\cf4 Synth\cf2 (\cf5 \\simplenoise\cf2 ,[\cf5 \\freq\cf2 ,newfreq]);\
+	\
+	1;\
+	\
+\});\
+\
+u = \cf4 TempoClock\cf2 (120/60).sched(0,\{\
+\
+	\cf6 var\cf2  newfreq = \cf7 ~freq\cf2 ;\
+	\
+	while(\{newfreq<200\},\{newfreq=newfreq*2\});\
+	\
+	while(\{newfreq>1000\},\{newfreq=newfreq/2\});\
+	\
+	\cf4 Synth\cf2 (\cf5 \\beepdecay\cf2 , [\cf5 \\freq\cf2 ,newfreq]);\
+	\
+	4+10.rand;\
+	\
+\});\
+\
+)\
+}

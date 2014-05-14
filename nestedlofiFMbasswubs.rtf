@@ -1,0 +1,138 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red0\green115\blue0;\red96\green96\blue96;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs26 \cf0 (\
+\
+\cf2 SynthDef\cf0 (\cf3 \\test\cf0 ,\{\
+\
+	\cf2 |freq=150,c1fs=1,c2fs=1,c1as=1,c2as=1,c1fe=1,c2fe=1,c1ae=1,c2ae=1,dur=0.3,ds1=22000,ds2=22000|\cf0 \
+\
+	\cf2 var\cf0  out;\
+	\
+	\cf2 var\cf0  c1f = \cf2 EnvGen\cf0 .ar(\cf2 Env\cf0 ([c1fs,c1fe],[dur]));\
+	\cf2 var\cf0  c2f = \cf2 EnvGen\cf0 .ar(\cf2 Env\cf0 ([c2fs,c2fe],[dur]));\
+	\cf2 var\cf0  c1a = \cf2 EnvGen\cf0 .ar(\cf2 Env\cf0 ([c1as,c1ae],[dur]));\
+	\cf2 var\cf0  c2a = \cf2 EnvGen\cf0 .ar(\cf2 Env\cf0 ([c2as,c2ae],[dur]));\
+	\
+	\cf2 var\cf0  c1 = \cf2 Latch\cf0 .ar(\cf2 SinOsc\cf0 .ar(freq*c1f,0,freq*c1a,freq), \cf2 Impulse\cf0 .ar(ds1));\
+	\cf2 var\cf0  c2 = \cf2 Latch\cf0 .ar(\cf2 SinOsc\cf0 .ar(c1*c2f,0,freq*c2a,freq), \cf2 Impulse\cf0 .ar(ds2));\
+	\
+	out = \cf2 SinOsc\cf0 .ar(c2);\
+	\
+	out = \cf2 Limiter\cf0 .ar(out,1/3,0.01);\
+\
+	\cf2 Out\cf0 .ar(0,out!2);\
+	\
+\}).store;\
+\
+)\
+\
+x = \cf2 nil\cf0 ;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\fs28 \cf0 \
+(\
+\
+n = 0;\
+\
+o = 1;\
+\
+w = \cf2 Window\cf0 .new(\cf4 "Derp"\cf0 );\
+\
+w.view.keyDownAction = \{\
+		\
+		\cf2 |v,c,m,u,k|\cf0 \
+	\
+		switch(	\
+		\
+					k,\
+					123,\cf3 \\left\cf0 ,\
+					124,\cf3 \\right\cf0 ,\
+					125,\cf3 \\down\cf0 ,\
+					126,\cf3 \\up\cf0 ,\
+					27,\cf3 \\minus\cf0 ,\
+					24,\cf3 \\plus\cf0 ,\
+					k\
+						\
+				).postln;\
+				\
+				if(k==6,\{z = 
+\fs26 [	\cf3 \\c1fs\cf0 ,[1/2,5/3,9/4].choose,\
+									\cf3 \\c2fs\cf0 ,[21/8,3/7,30/7],\
+									\cf3 \\c1as\cf0 ,20.rand/9,\
+									\cf3 \\c2as\cf0 ,3.rand/4,\
+									\cf3 \\c1fe\cf0 ,30.rand/8,\
+									\cf3 \\c2fe\cf0 ,50.rand/7,\
+									\cf3 \\c1ae\cf0 ,16.rand/8,\
+									\cf3 \\c2ae\cf0 ,40.rand/10,\
+									\cf3 \\ds1\cf0 ,16000/(10.rand+1),\
+									\cf3 \\ds2\cf0 ,16000/(10.rand+1),\
+									\cf3 \\dur\cf0 ,[1/5,1/3,1/10].choose];
+\fs28 \});\
+				\
+				if(k==49,\{\
+					\
+					if(x!=\cf2 nil\cf0 ,\{x.free;x=\cf2 nil\cf0 ;\});\
+					\
+					x = 
+\fs26 \cf2 Synth\cf0 (\cf3 \\test\cf0 ,[\cf3 \\freq\cf0 ,(n+48+(o*12)).midicps].addAll(z));
+\fs28 \
+					\
+					\});\
+					\
+					switch(	k,\
+								18,\{n=0;\},\
+								19,\{n=2;\},\
+								20,\{n=3;\},\
+								21,\{n=5;\},\
+								23,\{n=7;\},\
+								22,\{n=8;\},\
+								26,\{n=10;\},\
+								28,\{n=12;\},\
+								25,\{n=14;\});\
+	\
+	\};\
+\
+w.front;\
+\
+)
+\fs26 \
+\
+(\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 Synth\cf0 (\cf3 \\test\cf0 ,[	\cf3 \\freq\cf0 ,[110,220,440,880].choose,\
+				\cf3 \\c1fs\cf0 ,[1/2,5/3,9/4].choose,\
+				\cf3 \\c2fs\cf0 ,[21/8,3/7,30/7],\
+				\cf3 \\c1as\cf0 ,20.rand/9,\
+				\cf3 \\c2as\cf0 ,3.rand/4,\
+				\cf3 \\c1fe\cf0 ,30.rand/8,\
+				\cf3 \\c2fe\cf0 ,50.rand/7,\
+				\cf3 \\c1ae\cf0 ,16.rand/8,\
+				\cf3 \\c2ae\cf0 ,40.rand/10,\
+				\cf3 \\ds1\cf0 ,16000/(10.rand+1),\
+				\cf3 \\ds2\cf0 ,16000/(10.rand+1),\
+				\cf3 \\dur\cf0 ,[1/5,1/3,1/10].choose]);\
+				\
+)\
+\
+(\
+\
+\cf2 Synth\cf0 (\cf3 \\test\cf0 ,[	\cf3 \\freq\cf0 ,220,\
+				\cf3 \\c1fs\cf0 ,1/2,\
+				\cf3 \\c2fs\cf0 ,21/8,\
+				\cf3 \\c1as\cf0 ,1/8,\
+				\cf3 \\c2as\cf0 ,3/4,\
+				\cf3 \\c1fe\cf0 ,30/8,\
+				\cf3 \\c2fe\cf0 ,50/7,\
+				\cf3 \\c1ae\cf0 ,16/8,\
+				\cf3 \\c2ae\cf0 ,40/10,\
+				\cf3 \\ds1\cf0 ,700*17,\
+				\cf3 \\ds2\cf0 ,700*10,\
+				\cf3 \\dur\cf0 ,1/5]);\
+				\
+)\
+				}

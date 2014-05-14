@@ -1,0 +1,100 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;\red96\green96\blue96;
+\red51\green51\blue191;\red191\green0\blue0;\red255\green102\blue0;\red0\green0\blue255;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs30 \cf2 \
+(\
+\
+w = \cf3 Window\cf2 .new(\cf4 "Derp"\cf2 , \cf3 Window\cf2 .screenBounds, border:\cf5 true\cf2 );\
+\
+w.front;\
+\
+w.view.background = \cf3 Color\cf2 .black;\
+\
+\cf6 // --- //\cf2 \
+\
+\cf7 ~run\cf2  = \cf5 true\cf2 ;\
+\
+\cf7 ~phase\cf2  = 0;\
+\'a0 \'a0 \'a0 \'a0 \
+\cf6 // --- //\cf2 \
+\
+\cf7 ~measures\cf2  = \cf6 /*measure list*/\cf2 [\cf6 /*measure one*/\cf2 [\cf6 /*measure one is seven beats long*/\cf2 7,[[0,0,[0,2]],[0,3,[1,2]],[1,2,[0,3]]]]];\
+\
+\cf6 // --- //\cf2 \
+\
+w.drawFunc = \{\
+\pard\pardeftab720
+\cf2 \
+	\cf8 var\cf2  screenXPadding, screenYPadding, screenWidth, screenHeight, linesPerMeasure, measureSizeY, measureSpacing, measureWidth, measureHeight, measuresSize;\
+	\
+	screenWidth = w.bounds.width;\
+	screenHeight = w.bounds.height;\
+	\
+	screenXPadding = (1/24)*screenWidth;\
+	screenYPadding = (1/24)*screenHeight;\
+	\
+	measureSpacing = (1/24)*screenHeight;\
+	\
+	measureWidth = screenWidth-(screenXPadding*2);\
+	measureHeight = (((screenHeight-(screenYPadding*2))/\cf7 ~measures\cf2 .size)-measureSpacing)+(measureSpacing/\cf7 ~measures\cf2 .size);\
+	\
+	linesPerMeasure = 9;\
+	\
+	measuresSize = \cf7 ~measures\cf2 .size;\
+	\
+	\cf6 // --- //\cf2 \
+	\
+	\cf3 Pen\cf2 .use \{\
+	\
+		\cf3 Pen\cf2 .strokeColor = \cf3 Color\cf2 .new255(255,255,255,127);\
+		\
+		\cf3 Pen\cf2 .width = 3;\
+		\
+		\cf6 // --- //\cf2 \
+		\
+		measuresSize.do(\{\
+		\
+			\cf8 |measureIterator|\cf2 \
+\
+			\cf8 var\cf2  measureYOffset, measureXOffset;			\
+			\
+			measureXOffset = screenXPadding;\
+			measureYOffset = screenYPadding+((measureHeight+measureSpacing)*measureIterator);\
+			\
+			linesPerMeasure.do(\{\
+				\
+				\cf8 |lineIterator|\cf2 \
+				\
+				\cf8 var\cf2  pointX1, pointX2, pointY, lineHeight;\
+			\
+				lineHeight = (measureHeight/linesPerMeasure);\
+			\
+				pointX1 = measureXOffset;\
+				pointX2 = measureXOffset+measureWidth;\
+				\
+				pointY = measureYOffset+(lineHeight*lineIterator);\
+				\
+				\cf3 Pen\cf2 .beginPath;\
+				\
+				\cf3 Pen\cf2 .moveTo(\cf3 Point\cf2 (pointX1,pointY));\
+				\
+				\cf3 Pen\cf2 .lineTo(\cf3 Point\cf2 (pointX2,pointY));\
+				\
+				\cf3 Pen\cf2 .stroke;\
+							\
+			\});\
+	\
+		\});\
+\
+	\};\
+	\
+\};\
+\
+\{ while \{ \cf7 ~run\cf2  \} \{ w.refresh; 0.05.wait; \cf7 ~phase\cf2  = \cf7 ~phase\cf2  + 0.01pi;\} \}.fork(\cf3 AppClock\cf2 );\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf2 )\
+}

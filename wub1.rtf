@@ -1,0 +1,191 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf350
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;\red0\green115\blue0;
+\red191\green0\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs18 \cf2 \
+(\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\hats\cf2 , \{\
+\
+	\cf3 |amp=0.1,out=0,len=0.1|\cf2 \
+	\
+	\cf3 var\cf2  env1, output;\
+	\
+	env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.0005,len]), doneAction:2 );\
+	\
+	output = \cf3 WhiteNoise\cf2 .ar()*env1*env1*env1*env1*amp;\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.8, 0.05 );\
+	\
+	output = \cf3 HPF\cf2 .ar( output, 5000 );\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\snare\cf2 , \{\
+\
+	\cf3 |amp=0.1,out=0|\cf2 \
+	\
+	\cf3 var\cf2  env1, output;\
+	\
+	env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.001,1/3]), doneAction:2 );\
+	\
+	output = \cf3 WhiteNoise\cf2 .ar()*env1*env1*env1*env1*amp;\
+	\
+	output = \cf3 LPF\cf2 .ar( output, 7000 );\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.8, 0.05 );\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\kick\cf2 , \{\
+	\
+	\cf3 |amp=0.1,out=0|\cf2 \
+	\
+	\cf3 var\cf2  output, env1, env2;\
+	\
+	env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.005,0.07]), doneAction:2 );\
+	\
+	env2 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,0],[0.0001,0.005]) );\
+	\
+	output = \cf3 SinOsc\cf2 .ar(200*env1) + \cf3 SinOsc\cf2 .ar(100*env1,env1);\
+	\
+	output = output + (\cf3 WhiteNoise\cf2 .ar()*0.075*env2);\
+	\
+	output = \cf3 LPF\cf2 .ar( output, env1*4000 );\
+	\
+	output = output * amp * env1;\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+(instrument: \cf4 'kick'\cf2 ).play;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\wobble\cf2 , \{\
+	\
+	\cf3 |freq=440,amp=0.1,out=0,rate=3,dur=1|\cf2 \
+	\
+	\cf3 var\cf2  output;\
+	\
+	\cf3 var\cf2  env1 = \cf3 EnvGen\cf2 .ar( \cf3 Env\cf2 .new([0,1,1,0],[0,dur,0]), doneAction:2 );\
+	\
+	output = \cf3 Pulse\cf2 .ar(freq/4,0.5);\
+	\
+	output = output + \cf3 SinOsc\cf2 .ar(freq/4);\
+	\
+	output = output + \cf3 Saw\cf2 .ar(freq/4);\
+	\
+	output = output + (\cf3 Saw\cf2 .ar(freq*3/8)*0.5);\
+	\
+	output = output + \cf3 SinOsc\cf2 .ar(freq/8);\
+		\
+	output = output * amp * env1;\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.95, 0.05 );\
+	\
+	output = \cf3 RLPF\cf2 .ar( output, \cf3 SinOsc\cf2 .ar(rate,0,8000,8100) );\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/6, 0.99, 0.5 ) * env1 * env1;\
+	\
+	\cf3 Out\cf2 .ar(out, output);\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\masterbus\cf2 , \{\
+	\
+	\cf3 |in = 32|\cf2 \
+	\
+	\cf3 var\cf2  output = \cf3 In\cf2 .ar(in, 1);\
+	\
+	output = \cf3 HPF\cf2 .ar( output, 20 );\
+	\
+	output = \cf3 Limiter\cf2 .ar(output, 0.5, 0.05)*2;\
+	\
+	\cf3 Out\cf2 .ar(0, output!2);\
+	\
+\}).add;\
+\
+\cf3 SynthDef\cf2 ( \cf4 \\sawpad\cf2 , \{\
+	\
+	\cf3 |freq=440,amp=0.1,out=0,dur=1|\cf2 \
+	\
+	\cf3 var\cf2  output, env;\
+\
+	env = \cf3 EnvGen\cf2 .ar(\cf3 Env\cf2 .new([1,0.5],[dur],\cf4 \\sine\cf2 ),doneAction:2);\
+	\
+	output = \cf3 Pulse\cf2 .ar( freq, env/2+0.25 );\
+	\
+	output = \cf3 FreeVerb\cf2 .ar( output, 1/3, 0.95, 0.05 );\
+	\
+	output = output * env * amp;\
+	\
+	output = \cf3 RHPF\cf2 .ar( output, freq*4*env, 0.4 );\
+	\
+	\cf3 Out\cf2 .ar( out, output );\
+	\
+\}).add;\
+\
+)\
+\
+(\
+\
+t = \cf3 TempoClock\cf2 (1);\
+\
+~masterbus = \cf3 Bus\cf2 .audio();\
+\
+b = \cf3 Synth\cf2 .new( \cf4 \\masterbus\cf2 , [\cf4 \\in\cf2 , ~masterbus] );\
+\
+\cf5 //(degree: 0, instrument: \\wobble, out: ~masterbus ).play;\cf2 \
+\
+~bseq1 = \cf3 Pseq\cf2 ([0,3+\cf3 Prand\cf2 ([4,-1,0],\cf3 Prand\cf2 ([1,5],1)),5,\cf3 Prand\cf2 ([2,4,6,14,18],1)],4);\
+\
+~bseq2 = \cf3 Pseq\cf2 ([0,1,2,3,0,-1,-2,-3],2);\
+\
+~bseq3 = \cf3 Pseq\cf2 ([\cf3 Pbrown\cf2 (-3,6,2,4),\cf3 Pbrown\cf2 (-2,1,1,4),\cf3 Pbrown\cf2 (-4,2,2,4),\cf3 Pbrown\cf2 (-2,10,3,4),],1);\
+\
+\cf3 Pbind\cf2 (	\cf4 \\instrument\cf2 , \cf4 \\wobble\cf2 ,\
+		\cf4 \\scale\cf2 , [0,2,3,5,7,8,11],\
+		\cf4 \\out\cf2 , ~masterbus,\
+		\cf4 \\degree\cf2 , \cf3 Prand\cf2 ([~bseq1,~bseq2,~bseq3],\cf3 inf\cf2 ),\
+		\cf4 \\rate\cf2 , \cf3 Prand\cf2 ([1,3,4,5,6,7,10],\cf3 inf\cf2 ),\
+		\cf4 \\dur\cf2 , 1,\
+		\cf4 \\amp\cf2 , 0.15\
+).play(t);\
+\
+\cf5 /*\
+Pbind(	\\instrument, \\sawpad,\
+		\\scale, [0,2,3,5,7,8,10],\
+		\\out, ~masterbus,\
+		\\degree, Pseq([7,5,Prand([2,3,4],1),0] +.t [0,-3],inf),\
+		\\dur, 2,\
+		\\amp, 0.02\
+).play(t);\
+\cf2 */\
+\
+\cf3 Pbind\cf2 (	\cf4 \\instrument\cf2 , \cf4 \\kick\cf2 ,\
+		\cf4 \\out\cf2 , ~masterbus,\
+		\cf4 \\dur\cf2 , 1/3,\
+		\cf4 \\amp\cf2 , \cf3 Pseq\cf2 ([1,0,0,1,0,0.5,1,0,0,1,0.4,0.2],\cf3 inf\cf2 )\
+).play(t);\
+\
+\cf3 Pbind\cf2 (	\cf4 \\instrument\cf2 , \cf4 \\snare\cf2 ,\
+		\cf4 \\out\cf2 , ~masterbus,\
+		\cf4 \\amp\cf2 , \cf3 Pseq\cf2 ([0,0,0.6,0,0,0,0.6,\cf3 Prand\cf2 ([0,0,0,0.2],1)],\cf3 inf\cf2 ),\
+		\cf4 \\dur\cf2 , 0.5\
+).play(t);\
+\
+\cf3 Pbind\cf2 (	\cf4 \\instrument\cf2 , \cf4 \\hats\cf2 ,\
+		\cf4 \\out\cf2 , ~masterbus,\
+		\cf4 \\amp\cf2 , \cf3 Prand\cf2 ([0.1,0.2,0.25]/3,\cf3 inf\cf2 ),\
+		\cf4 \\len\cf2 , \cf3 Pseq\cf2 ([0.125,0.125,0.125,0.25],\cf3 inf\cf2 ),\
+		\cf4 \\dur\cf2 , \cf3 Pseq\cf2 ([0.25,\cf3 Pseq\cf2 ([0.25/3],3)],\cf3 inf\cf2 )\
+).play(t);\
+\
+\
+)}

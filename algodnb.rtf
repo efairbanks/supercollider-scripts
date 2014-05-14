@@ -1,0 +1,274 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green102\blue0;\red191\green0\blue0;
+\red0\green0\blue191;\red0\green0\blue255;\red51\green51\blue191;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs28 \cf2 \
+\
+(\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~measureIndex\cf2  = 0;\
+\cf3 ~measureLength\cf2  = 16;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 // --- //\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~bassdrumChoices\cf2  = [\cf5 ED.expand(ED.convert([1,1,0,1,1,1,0,0])*2)\cf2 ];\
+\cf3 ~bassdrumSeq\cf2  = \cf3 ~bassdrumChoices\cf2 .choose;\
+\
+\cf3 ~bassdrum\cf2  = \{\
+\
+	\cf6 |index|\cf2 \
+	\
+	if([\cf7 true\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ].choose,\{\
+	\
+		\cf3 ~bassdrumSeq\cf2  = \cf3 ~bassdrumChoices\cf2 .choose;\
+		\
+	\});\
+	\
+	\cf3 ~bassdrumSeq\cf2 .wrapAt(index);\
+	\
+\};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 // --- //\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~snaredrumChoices\cf2  = [\cf5 ED\cf2 .expand(\cf5 ED\cf2 .convert([0,0,1,0,0,0,1,0])*2)];\
+\
+\cf3 ~snaredrumSeq\cf2  = \cf3 ~snaredrumChoices\cf2 .choose;\
+\
+\cf3 ~snaredrum\cf2  = \{\
+\
+	\cf6 |index|\cf2 \
+	\
+	if([\cf7 true\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ].choose,\{\
+	\
+		\cf3 ~snaredrumSeq\cf2  = \cf3 ~snaredrumChoices\cf2 .choose;\
+		\
+	\});\
+	\
+	\cf3 ~snaredrumSeq\cf2 .wrapAt(index);\
+	\
+\};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 // --- //\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~highhatChoices\cf2  = [\cf5 ED\cf2 .expand(\cf5 ED\cf2 .convert([1,0])*3)];\
+\cf3 ~highhatSeq\cf2  = \cf3 ~highhatChoices\cf2 .choose;\
+\
+\cf3 ~highhat\cf2  = \{\
+\
+	\cf6 |index|\cf2 \
+	\
+	if([\cf7 true\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ].choose,\{\
+	\
+		\cf3 ~highhatSeq\cf2  = \cf3 ~highhatChoices\cf2 .choose;\
+		\
+	\});\
+	\
+	\cf3 ~highhatSeq\cf2 .wrapAt(index);\
+	\
+\};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 // --- //\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~basslineChoices\cf2  = [\cf5 ED\cf2 .expand(\cf5 ED\cf2 .convert([0,1])*3)];\
+\cf3 ~basslineSeq\cf2  = \cf3 ~basslineChoices\cf2 .choose;\
+\
+\cf3 ~bassline\cf2  = \{\
+\
+	\cf6 |index|\cf2 \
+	\
+	if(([\cf7 true\cf2 ,\cf7 false\cf2 ].choose).and(index%3==0),\{\
+	\
+		\cf3 ~basslineSeq\cf2  = \cf3 ~basslineChoices\cf2 .choose;\
+		\
+	\});\
+	\
+	\cf3 ~basslineSeq\cf2 .wrapAt(index);\
+	\
+\};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 // --- //\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~backgroundpadsChoices\cf2  = [[1]++(0!(\cf3 ~measureLength\cf2 -1))];\
+\cf3 ~backgroundpadsSeq\cf2  = \cf3 ~backgroundpadsChoices\cf2 .choose;\
+\
+\cf3 ~backgroundpads\cf2  = \{\
+\
+	\cf6 |index|\cf2 \
+	\
+	if([\cf7 true\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ,\cf7 false\cf2 ].choose,\{\
+	\
+		\cf3 ~backgroundpadsSeq\cf2  = \cf3 ~backgroundpadsChoices\cf2 .choose;\
+		\
+	\});\
+	\
+	\cf3 ~backgroundpadsSeq\cf2 .wrapAt(index);\
+	\
+\};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 // --- //\cf2 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf3 ~chordChooser\cf2  = \{\
+	\
+	\cf6 var\cf2  majChordOffsetPairs, minChordOffsetPairs, majChord, minChord;\
+		\
+	majChordOffsetPairs = [[[0,4,7-12],[0,4-12,7-12]].choose,[0,5,7].choose];\
+	minChordOffsetPairs = [[[0,3,7-12],[0,3-12,7-12]].choose,[2,4,9].choose];\
+	\
+	majChord = majChordOffsetPairs[0] + majChordOffsetPairs[1];\
+	minChord = minChordOffsetPairs[0] + minChordOffsetPairs[1];\
+	\
+	[majChord, minChord].choose;\
+	\
+\};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\cf4 // --- //\cf2 \
+\
+t = \cf5 TempoClock\cf2 (130*(1.5)/15).sched(0,\{\
+\
+	\cf6 var\cf2  bassdrumAmp, snaredrumAmp, highhatAmp;\
+	\
+	if(\cf3 ~measureIndex\cf2 ==0,\{\
+		\
+		\cf3 ~chord\cf2  = \cf3 ~chordChooser\cf2 .();\
+		\
+	\});\
+	\
+	bassdrumAmp	= cos(\cf3 ~measureIndex\cf2 *2*pi/\cf3 ~measureLength\cf2 *2)*0.5;\
+	snaredrumAmp	= cos(\cf3 ~measureIndex\cf2 *2*pi/\cf3 ~measureLength\cf2 *4)*0.5;\
+	highhatAmp		= cos(\cf3 ~measureIndex\cf2 *2*pi/\cf3 ~measureLength\cf2 *16)*0.5;\
+	\
+	if(\cf3 ~bassdrum\cf2 .(\cf3 ~measureIndex\cf2 )==1,\{\cf5 Synth\cf2 (\cf8 \\bassdrum\cf2 ,[\cf8 \\amp\cf2 ,bassdrumAmp]);\});\
+	if(\cf3 ~snaredrum\cf2 .(\cf3 ~measureIndex\cf2 )==1,\{\cf5 Synth\cf2 (\cf8 \\snaredrum\cf2 ,[\cf8 \\amp\cf2 ,snaredrumAmp]);\});\
+	if(\cf3 ~highhat\cf2 .(\cf3 ~measureIndex\cf2 )==1,\{\cf5 Synth\cf2 (\cf8 \\highhat\cf2 ,[\cf8 \\amp\cf2 ,highhatAmp]);\});\
+	\
+	if(\cf3 ~backgroundpads\cf2 .(\cf3 ~measureIndex\cf2 )==1,\{\
+	\
+		\cf3 ~chord\cf2 .do(\{\
+		\
+			\cf6 |note|\cf2 \
+		\
+			\cf4 //Synth(\\backgroundpads,[\\freq,(note+60).midicps,\\amp,1/5]);\cf2 \
+			\
+		\});\
+	\
+	\});\
+	\
+	if(\cf3 ~bassline\cf2 .(\cf3 ~measureIndex\cf2 )==1,\{\
+	\
+		\cf4 //Synth(\\bassline,[\\freq,((((~chord.sort[0]!3)++[~chord.choose]).choose).wrap(-9,2)+48).midicps,\\amp,1]);\cf2 \
+	\
+	\});\
+\
+	\cf3 ~measureIndex\cf2  = \cf3 ~measureIndex\cf2  + 1;\
+\
+	if(\cf3 ~measureIndex\cf2  >= \cf3 ~measureLength\cf2 , \{\
+		\
+		\cf3 ~measureIndex\cf2  = 0;\
+		\
+	\});\
+	\
+	1;\
+	\
+\});\
+\
+)\
+\
+(\
+\
+\cf5 SynthDef\cf2 (\cf8 \\bassdrum\cf2 ,\{\
+\
+	\cf6 |amp = 0.5|\cf2 \
+\
+	\cf6 var\cf2  output = \cf5 SinOsc\cf2 .ar(\cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([400,160,0],[5,70]/1000),doneAction:2));\
+\
+	output = output + (\cf5 BPF\cf2 .ar(\cf5 WhiteNoise\cf2 .ar(),[400,4000],0.6)*\cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([0,4,1,0]/2,[5,20,100])));\
+\
+	output = output*amp*2/3;\
+	\
+	output = \cf5 HPF\cf2 .ar(output,20);\
+\
+	\cf5 Out\cf2 .ar(0,output/2!2);\
+	\
+\}).store;\
+\
+\cf5 SynthDef\cf2 (\cf8 \\snaredrum\cf2 ,\{\
+\
+	\cf6 |amp = 0.5|\cf2 \
+\
+	\cf6 var\cf2  noise = \cf5 WhiteNoise\cf2 .ar()*\cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([0,20,5,2,2/3,0]/40,[5,30,70,30,750]/1000),doneAction:2);\
+	\
+	\cf6 var\cf2  output = \cf5 BPF\cf2 .ar(noise, [200,1000,2000,5000], 0.5, [10,20,15,5]/7)*amp;\
+\
+	\cf5 Out\cf2 .ar(0,output!2);\
+	\
+\}).store;\
+\
+\cf5 SynthDef\cf2 (\cf8 \\highhat\cf2 ,\{\
+	\
+	\cf6 |amp = 0.5|\cf2 \
+\
+	\cf6 var\cf2  noise = \cf5 WhiteNoise\cf2 .ar()*\cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([0,20,5,2]/40,[5,40,70]/1000),doneAction:2);\
+	\
+	\cf6 var\cf2  output = \cf5 BPF\cf2 .ar(noise, [1000,2000,5000,7000,11000], 0.4, [3,5,15,10,15]/60)*amp;\
+\
+	\cf5 Out\cf2 .ar(0,output!2);\
+	\
+\}).store;\
+\
+\cf5 SynthDef\cf2 (\cf8 \\backgroundpads\cf2 ,\{\
+\
+	\cf6 |freq=440,amp=0.5|\cf2 \
+	\
+	\cf6 var\cf2  env, output;\
+	\
+	env = \cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([0,2,1,0].normalize,[250,500,3000]/1000),doneAction:2)*0.5;\
+	\
+	output = \cf5 LPF\cf2 .ar(\cf5 Pulse\cf2 .ar(freq)*env,freq*3);\
+	\
+	output = output + (\cf5 HPF\cf2 .ar(\cf5 Saw\cf2 .ar(freq),3500)*\cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([0,1,0],[100,2000]/1000))/2);\
+	\
+	output = \cf5 HPF\cf2 .ar(output, 300)*amp;\
+	\
+	\cf5 Out\cf2 .ar(0,output!2);\
+	\
+\}).store;\
+\
+\cf5 SynthDef\cf2 (\cf8 \\bassline\cf2 ,\{\
+\
+	\cf6 |freq=440,amp=0.5|\cf2 \
+	\
+	\cf6 var\cf2  output, ifreq;\
+	\
+	ifreq = freq+\cf5 Rand\cf2 (0,freq/100);\
+	\
+	output = \cf5 Saw\cf2 .ar(ifreq/2)*\cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([0,2,1,0].normalize,[10,100,250]/1000),doneAction:2)*amp*0.5;\
+	\
+	output = output + (\cf5 HPF\cf2 .ar(\cf5 Pulse\cf2 .ar(ifreq, \cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([1/100,2/3],[1]))), 3000)*amp*\cf5 EnvGen\cf2 .ar(\cf5 Env\cf2 ([0,1,0],[100,200]/2500)));\
+	\
+	output = \cf5 LPF\cf2 .ar(output, 1000);\
+	\
+	\cf5 Out\cf2 .ar(0,output!2);\
+	\
+\}).store;\
+\
+)\
+\
+\cf4 //t.stop;\cf2 \
+\
+\cf4 //s.boot}

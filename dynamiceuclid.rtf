@@ -1,0 +1,172 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;\red191\green0\blue0;
+\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs14 \cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\fs26 \cf2 (\
+\
+~eugen = \{\
+	\
+	\cf3 |pulses, steps|\cf2 \
+	\
+	\cf3 var\cf2  a = \cf3 Array\cf2 .new(steps);\
+	\
+	\cf3 var\cf2  b = \cf3 Array\cf2 .new(steps);\
+	\
+	\cf3 var\cf2  tempa = \cf3 Array\cf2 .new(steps);\
+	\
+	\cf3 var\cf2  tempb = \cf3 Array\cf2 .new(steps);\
+	\
+	\cf3 var\cf2  split;\
+	\
+	steps.do(\{\
+		\
+		\cf3 |inc|\cf2 \
+		\
+		if(	inc<pulses,\
+			\{a = tempa.add(\cf3 Array\cf2 .new(steps).add(1));\},\
+			\{b = tempb.add(\cf3 Array\cf2 .new(steps).add(0));\});\
+			\
+	\});\
+	\
+	\cf4 // --- //\cf2 \
+	\
+	while(	\{(b.size>1).and(a.size>0)\},\{\
+			\
+		split = 0;\
+		\
+		b.size.do(\{\
+		\
+			\cf3 |inc|\cf2 \
+			\
+			tempa = \cf3 Array\cf2 .new(steps).addAll(a);\
+			\
+			a[inc%a.size] = tempa[inc%a.size].add(b[inc]);\
+			\
+			split = (split+1)%a.size;\
+			\
+		\});\
+		\
+		b = a.copyRange(split,a.size-1);\
+		\
+		tempa = a.copyRange(0,split-1);\
+		\
+		a = \cf3 Array\cf2 .new(steps).addAll(tempa);\
+\
+	\});\
+		\
+	a.addAll(b).flat;\
+	\
+\};\
+\
+~eucvt = \{\
+\
+	\cf3 |array|\cf2 \
+\
+	var return;\
+	\
+	array.size.do(\{\
+		\
+		\cf3 |inc|\cf2 \
+		\
+		if(	(array[inc] == 0).and(return.size>0),\
+			\{return[return.size-1] = return[return.size-1] + 1;\},\
+			\{return = return ++ [0];\}\
+		);\
+				\
+	\});\
+	\
+	[0] ++ (return+1);\
+	\
+\};\
+\
+~euexp = \{\
+	\
+	\cf3 |lengths|\cf2 \
+\
+	\cf3 var\cf2  a = \cf3 Array\cf2 .new();\
+	\
+	lengths.size.do(\{\
+		\
+		\cf3 |inc|\cf2 \
+	\
+		a = a ++ (0!lengths[inc]);\
+		\
+		if(	inc<(lengths.size-1),\
+			\{a = a ++ [1];\},\
+			\{\});\
+		\
+	\});\
+\
+	a;\
+\
+\};\
+\
+)\
+\
+(\
+\
+~seq = [];\
+\
+4.do(\{\
+	\
+	\cf3 |inc|\cf2 \
+	\
+	~seq = ~seq ++ ~eugen.value(3.rand+1,4);\
+	\
+\});\
+\
+~seq = ~eucvt.value(~seq);\
+\
+~inc = 0;\
+\
+~beats = 0;\
+\
+t = \cf3 TempoClock\cf2 (140/(60)*4).schedAbs(0,\{\
+	\
+	\cf3 var\cf2  return;\
+	\
+	while(\{~seq[~inc]==0;\},\{~inc=(~inc+1)%~seq.size;\});\
+	\
+	return = ~seq[~inc];\
+	\
+	\cf3 Synth\cf2 (\cf5 \\pop\cf2 , [\cf5 \\freq\cf2 ,5000,\cf5 \\len\cf2 ,(return**2)*40,\cf5 \\amp\cf2 ,(10-return)/80,\cf5 \\out\cf2 ,0]);\
+	\cf3 Synth\cf2 (\cf5 \\pop\cf2 , [\cf5 \\freq\cf2 ,6000,\cf5 \\len\cf2 ,(return**2)*40,\cf5 \\amp\cf2 ,(10-return)/80,\cf5 \\out\cf2 ,1]);\
+	\
+	~inc = ~inc+1;\
+	\
+	if(	~inc<~seq.size,\
+		\{\},\
+		\{~inc=0;\});\
+		\
+	(return).postln;\
+		\
+	return;\
+	\
+\});\
+\
+\cf3 TempoClock\cf2 (140/(60)).schedAbs(	0,\
+									\{\
+									\
+										\cf3 Synth\cf2 (\cf5 \\kick\cf2 );\
+										\
+										1\
+										\
+									\});\
+									\
+\cf3 TempoClock\cf2 (140/(60)).schedAbs(	1,\
+									\{\
+									\
+										\cf3 Synth\cf2 (\cf5 \\snare\cf2 );\
+										\
+										2\
+										\
+									\});\
+\
+)\
+\
+}

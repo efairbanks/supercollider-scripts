@@ -1,0 +1,48 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs18 \cf2 \
+\
+
+\fs34 (\
+\
+\{\
+	\
+	\cf3 var\cf2  nse = (\cf3 Resonz\cf2 .ar(\cf3 WhiteNoise\cf2 .ar(),[111,264,486,853,1236,3622,6421]*0.9,\cf3 SinOsc\cf2 .ar(0.2,0,0.03,0.04))/5);\
+	\
+	(nse * \cf3 Pulse\cf2 .ar(10,\cf3 SinOsc\cf2 .ar(5,0,0.6,0.7)))!2;\
+	\
+\}.play;\
+\
+)\
+\
+\cf3 SynthDef\cf2 (\\derp,\{\
+\
+	\cf3 |a=#[200,433,822,1611]|\cf2 \
+	\
+	Out.ar(0,SinOsc.ar(a,0,0.1)!2);\
+	\
+\}).store;\
+\
+(\
+\
+f = \{\
+	\
+		|ratio = 2, elements = 10|\
+	\
+		var x = [2];\
+		\
+		elements.do(\{x = x ++ (x[x.size-1]*2)\});\
+	\
+		\};\
+		\
+f.value(1.33,10);\
+\
+//Synth(\\derp,[\\a,[300,500,700,1300,2000]]);\
+\
+)\
+\
+\
+}

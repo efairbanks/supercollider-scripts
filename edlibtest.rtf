@@ -1,0 +1,47 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;\red191\green0\blue0;
+\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs18 \cf2 \
+\
+(\
+\
+t.clear;\
+\
+~baseRhythm = \cf3 ED\cf2 .create(5,13);\
+\
+\cf4 // --- //\cf2 \
+\
+~beatCursor = 0;\
+\
+t = \cf3 TempoClock\cf2 (120/30).sched(0,\{\
+	\
+	\cf3 |beat|\cf2 \
+	\
+	if(~beatCursor==0,\{\
+		\
+		~kickRhythm = \cf3 ED\cf2 .expand(\cf3 ED\cf2 .convert(\cf3 ED\cf2 .extrapolate(\cf3 ED\cf2 .convert(~baseRhythm)*2,\cf3 Array\cf2 .rand(4,3,9),16))*8);\
+\
+		~snareRhythm = ED.extrapolate(ED.convert(\cf3 ED\cf2 .expand(\cf3 ED\cf2 .convert(~baseRhythm.rotate((~baseRhythm.size/2).asInteger))*16)),Array.rand(2,0,1)++[1],128);\
+\
+		~hatsRhythm = \cf3 ED\cf2 .expand(\cf3 ED\cf2 .convert(\cf3 ED\cf2 .extrapolate(\cf3 ED\cf2 .convert(~baseRhythm)*4,2**\cf3 Array\cf2 .rand(10,0,3),16))*4);\
+		\
+		"New Measure".postln;\
+		\
+		\});\
+	\
+	if(~kickRhythm[~beatCursor]==1,\{\cf3 Synth\cf2 (\cf5 \\kick\cf2 )\});\
+	\
+	if(~snareRhythm[~beatCursor]==1,\{\cf3 Synth\cf2 (\cf5 \\snare\cf2 )\});\
+		\
+	if(~hatsRhythm[~beatCursor]==1,\{\cf3 Synth\cf2 (\cf5 \\hats\cf2 ,[\cf5 \\len\cf2 ,sin(~beatCursor*16*pi/(~baseRhythm.size*16))+2/16,\\amp,\cf0 cos(~beatCursor*32*pi/(~baseRhythm.size*16))+2/32\cf2 ])\});\
+	\
+	~beatCursor = (~beatCursor + 1)%(~baseRhythm.size*16);\
+	\
+	1/16;\
+	\
+	\});\
+	\
+)}
