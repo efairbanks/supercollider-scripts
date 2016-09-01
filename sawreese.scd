@@ -1,0 +1,36 @@
+
+(
+
+SynthDef(\sawreese,{
+	
+	|freq=220|
+
+	var lfo = (SinOsc.ar(freq/8)+1)/2;
+
+	var tone = Saw.ar([freq/4,freq*3/4]+(Array.fill(20,{|i| (i*10)})*SinOsc.ar(freq*1/3,0,1)))*0.05+LPF.ar(SinOsc.ar(freq/4,0,0.2),70);
+	
+	tone = RLPF.ar(tone*lfo,SinOsc.ar(freq/2,0,8000,9000),SinOsc.ar(3,0,0.2,0.5));
+
+	Out.ar(0,tone);
+	
+}).store;
+
+~freq = 30;
+
+s = Synth(\sawreese);
+
+t = TempoClock(140/60).sched(0,{
+	
+	s.set(\freq,~freq);
+	
+	~freq = ~freq*1.01;
+	
+	~freq.postln;
+	
+	0.2;
+	
+	});
+
+)
+
+(instrument:\sawreese,degree:0).play;

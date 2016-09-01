@@ -1,0 +1,33 @@
+(
+e=();
+e.beat=0;
+e.scale=Scale.minor;
+e.degrees=[0,2,6,0,3,5,6,4];
+e.targetFreq=200;
+(
+e.run={
+  var freq;
+  if(e.beat%2==0,{
+    3.do({|inc|
+      var degree, note, freq;
+      degree=inc*2+e.degrees.wrapAt(e.beat/12);
+      note=e.scale.performDegreeToKey(degree%7);
+      freq=note.midicps;
+      while({freq<(e.targetFreq*1.25)},{freq=freq*2});
+      Synth(\chippads,[\freq,freq]);
+    });
+  });
+  freq=e.scale.degreeToFreq(e.degrees.wrapAt(e.beat/12)+[2,0,4,0,6].wrapAt(e.beat),0.midicps,1);
+  e.targetFreq=e.targetFreq+(40.rand-20);
+  while({e.targetFreq<150},{e.targetFreq=e.targetFreq*2});
+  while({e.targetFreq>300},{e.targetFreq=e.targetFreq/2});
+  while({freq<e.targetFreq},{freq=freq*2});
+  Synth(\string,[\freq,freq,\amp,0.15]);
+  e.beat=e.beat+1;
+  0.5;
+};
+);
+e.metro=TempoClock(120/30).sched(0,{
+  e[\run].();
+});
+)

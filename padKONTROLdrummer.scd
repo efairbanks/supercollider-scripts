@@ -1,0 +1,81 @@
+
+(
+
+MIDIClient.init;
+
+~sysexSend = MIDIOut.new(MIDIClient.destinations.indexOf(MIDIOut.findPort("padKONTROL", "CTRL")));
+~sysexRecv = MIDIIn.connect(0,MIDIClient.sources.indexOf(MIDIIn.findPort("padKONTROL", "PORT A")));
+
+~initString = [0xF0, 0x42, 0x40, 0x6E, 0x08, 0x00, 0x00, 0x01, 0xF7,0xF0, 0x42, 0x40, 0x6E, 0x08, 0x3F, 0x2A, 0x00, 0x00, 0x05, 0x05, 0x05, 0x7F, 0x7E, 0x7F, 0x7F, 0x03, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0d, 0x0E, 0x0F, 0x10, 0xF7,0xF0,0x42,0x40,0x6E,0x08,0x3F,0x0A,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x29,0x29,0x29,0xF7];
+
+~sysexSend.sysex(Int8Array.newFrom(~initString));
+
+~sysexHandler = {
+
+	|src, sysex|
+	
+	var pad, state, amp;
+	
+	sysex[5].switch(0x45,{
+		
+		pad = (sysex[6]%64);
+		
+		state = (sysex[6]/64).round;
+		
+		amp = sysex[7]/127;
+		
+		[\pad,pad,state, amp].postln;
+		
+		if((state==1)&&(pad==0),{
+		
+			Synth(\bassdrum,[\amp,amp]);
+			
+		});
+		
+		if((state==1)&&(pad==1),{
+			
+			Synth(\highhat,[\amp,amp]);
+			
+		});
+		
+		if((state==1)&&(pad==2),{
+			
+			Synth(\highhat,[\amp,amp]);
+			
+		});
+		
+		if((state==1)&&(pad==3),{
+		
+			Synth(\snaredrum,[\amp,amp]);
+			
+		});
+		
+		if((state==1)&&(pad>3),{
+		
+			Synth(\backgroundpads,[\amp,amp,\freq,Scale.minor.degreeToFreq(pad-3,440,0)]);
+			
+		});
+	
+	});
+
+};
+
+SynthDef(\thebass,{
+
+	|freq=440, amp=0.5|
+	
+	
+	
+});
+
+~sysexRecv.sysex = {
+	
+	|src, sysex|
+	
+	"asdfsd".postln;
+	
+	~sysexHandler.(src, sysex);
+	
+};
+
+)

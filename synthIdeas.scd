@@ -2,6 +2,34 @@ s.boot;
 (
 x.free;
 x={
+  var out, freq, env;
+  freq = 440;
+  freq = (((Pulse.ar(freq*2)*100).atan)+1/2+1)*freq;
+  out = RLPF.ar(Pulse.ar(freq),freq*8,0.1);
+  out = out * 0.1;
+  out = out!2;
+  out;
+}.play;
+)
+(
+x.free;
+x={
+  var out, freq, env, lpfenv;
+  freq = 55;
+  lpfenv = EnvGen.ar(Env([0,1,0],[0,0.1]), doneAction:2, curve:\cubed);
+  env = EnvGen.ar(Env([0,1,1,0],[0.005,0.1-0.01,0.005]));
+  out = Pulse.ar(freq,0.3)+Pulse.ar(freq+1.234,0.5);
+  //out = out * env;
+  out = (out*10).atan;
+  out = RLPF.ar(out,lpfenv*16000+30,0.05);
+  out = (out*10).atan;
+  out = out * 0.05;
+  out!2;
+}.play;
+)
+(
+x.free;
+x={
   var out, freq;
   freq = 400;
   out = 0;
@@ -23,6 +51,27 @@ x={
   out=out*((-20).dbamp);
   out!2;
 }.play;
+)
+(
+x.free;
+x={|out, freq=40, env, feedback|
+  feedback=LocalIn.ar(2);
+  freq = freq+(feedback/2);
+  out = Pulse.ar(freq,0.5+(feedback/100))+feedback;//+Saw.ar(freq);
+  LocalOut.ar(DelayN.ar(out*0.9,1,1/freq));
+  out=out*0.1;
+  out!2;
+}.play;
+t.stop;
+t=TempoClock(120/30).sched(0,{
+  var freq;
+  if(e==nil,{e=();});
+  if(e.beat==nil,{e.beat=0;});
+  freq = (Scale.minor.performDegreeToKey([7,3,6,4])+23).midicps.wrapAt(e.beat);
+  x.set(\freq,freq);
+  Synth(\leads,[\freq,freq]);
+  e.beat=e.beat+1;
+  8;});
 )
 (
 x.free;

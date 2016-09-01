@@ -49,8 +49,8 @@ e.sequencerEditState=e.sequencerEditStates[0];
 e.globalEditState=e.globalEditStates[0];
 e.instruments = [\feedbackBass,\sawStab,\pulseLead,\kick,\hats,\snare];
 e.sequencers = (divisions:5,length:8,level:4,octave:4,instrument:\feedbackBass,\player:\chordPlayer)!3;
-e.perBeatSequencerSettings={()!e.sequencers.size}!32;
 e.thisBeatSequencerSettings=()!e.sequencers.size;
+e.perBeatSequencerSettings={()!e.sequencers.size}!32;
 e.selectedSequencer=0;
 e.sequencers.size.do({|inc|
   e.sequencers[inc].player=[\notePlayer,\chordPlayer].clipAt(inc);
@@ -253,12 +253,12 @@ l.midirecv.noteOn={|src,chan,num,val| var x,y;
   x=num&0x0f; y=(num&0xf0)>>4;
   if((x<8).and(y<8),{
     e.state.switch(
-      \tonnetz,{if(x>7,{e.sequencers[y].muted=(e.sequencers[y].muted==false);});
+      \tonnetz,{if(x>7,{e.thisBeatSequencerSettings[y].muted=(e.sequencers[y].muted==false);});
         e.inputPitchClasses=e.inputPitchClasses++[((x*3)+(y*4))%12];},
-      \divisions,{e.sequencers[y].divisions=x+1;},
-      \length,{e.sequencers[y].length=x+1;},
-      \level,{e.sequencers[y].level=x;},
-      \octave,{e.sequencers[y].octave=x;},
+      \divisions,{e.thisBeatSequencerSettings[y].divisions=x+1;},
+      \length,{e.thisBeatSequencerSettings[y].length=x+1;},
+      \level,{e.thisBeatSequencerSettings[y].level=x;},
+      \octave,{e.thisBeatSequencerSettings[y].octave=x;},
       \clearBeat,{e.clearBeat=true;if(x>7,{},{e.beatPitchClasses.wrapPut(x+(y*8),[]);});},
       \globalEdit,{
         if(x>7,{e.selectedSequencer=y;},{

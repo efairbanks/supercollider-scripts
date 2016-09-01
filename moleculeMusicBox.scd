@@ -1,0 +1,47 @@
+(
+e=();
+e.notes=();
+//e.moleculeLengths=[4,3];
+e.moleculeLengths=[18,29];
+e.moleculeLengthsIndex=0;
+e.currentNote=0;
+e.currentNoteLength=0;
+e.tick=0;
+e.ticksPerBeat=4;
+e.beatsPerMeasure=8;
+e.t=TempoClock(100/15).sched(0,{
+  if(e.notes[e.tick]!=nil,{
+    e.notes[e.tick].notes.do({|note,index|
+      Synth(\piano,[
+        \freq,Scale.major.degreeToFreq(note%21,24.midicps,2),
+        \amp,(((e.notes[e.tick].notes.size-1)-index)*(-5)).dbamp
+      ]);
+    });
+  });
+  if(e.currentNoteLength==0,{
+    if(e.notes[e.tick]==nil,
+      {
+        e.notes[e.tick]=(notes:[e.currentNote]);
+      },
+      {
+        e.notes[e.tick].notes=e.notes[e.tick].notes++[e.currentNote];
+        e.moleculeLengthsIndex=e.moleculeLengthsIndex+1;
+    });
+    Synth(\piano,[
+      \freq,Scale.major.degreeToFreq(e.currentNote%28,24.midicps,2)
+    ]);
+    e.currentNote=e.currentNote+2;
+    e.currentNote=e.currentNote%28;
+    e.currentNoteLength=e.moleculeLengths.wrapAt(e.moleculeLengthsIndex);
+  });
+  e.currentNoteLength=e.currentNoteLength-1;
+  e.tick=(e.tick+1)%(e.ticksPerBeat*e.beatsPerMeasure);
+  1;
+});
+)
+e.tick=e.tick-1;
+(
+SynthDef(\click,{
+  Out.ar(0,EnvGen.ar(Env([0,1,0],[0.0001,0.001]))*PinkNoise.ar()!2);
+}).store;
+)

@@ -1,0 +1,66 @@
+(
+~arrayAsBits={|array| var ret=0;
+  array=array.reverse;
+  array.size.do({|inc|ret=(2**inc)*array[inc]+ret;});
+  ret;
+};
+~displayHandler={ var gridOffset;
+  l.greenTopBarBuffer=0!8; l.redTopBarBuffer=0!8;
+  l.greenSideBarBuffer=0!8; l.redSideBarBuffer=0!8;
+  l.greenDisplayBuffer=0!64; l.redDisplayBuffer=0!64;
+  l.topRow.size.do({|inc|l.greenTopBarBuffer[inc]=l.topRow[inc]*3;});
+  gridOffset=~arrayAsBits.(l.topRow)*64;
+  64.do({|inc|
+    l.greenDisplayBuffer[inc]=l.grid[inc+gridOffset]*2;
+    l.redDisplayBuffer[inc]=l.grid[inc+gridOffset]*3;
+  });
+  l.draw.();
+  1/5;
+};
+l = ();
+l.grid=0!(256*8*8);
+l.topRow=0!8;
+MIDIClient.init;
+l.midisource=MIDIClient.sources.detect{|a|a.name.contains("Launchpad")};
+l.mididestination=MIDIClient.destinations.detect{|a|a.name.contains("Launchpad")};
+l.midirecv=MIDIIn.connect(0,l.midisource.uid);
+l.midiout=MIDIOut(0,l.mididestination.uid);
+l.midirecv.noteOn={|src,chan,num,val| var x,y;
+  x=num&0x0f; y=(num&0xf0)>>4;
+  [x,y,\on].postln;
+  if((x<8).and(y<8),{
+    var gridOffset=~arrayAsBits.(l.topRow)*64;
+    l.grid[y*8+x+gridOffset]=if(l.grid[y*8+x+gridOffset]==0,{1},{0});
+  });
+};
+l.midirecv.noteOff={|src,chan,num,val| var x,y;
+  x=num&0x0f; y=(num&0xf0)>>4;
+  [x,y,\off].postln;
+};
+l.midirecv.control={|src,chan,num,val|
+  num=num-104;
+  [num,(0:\off,127:\on)[val]].postln;
+  if(val>0,{l.topRow[num]=if(l.topRow[num]==0,{1},{0});});
+};
+l.greenDisplayBuffer = 0!64; l.redDisplayBuffer = 0!64;
+l.greenSideBarBuffer = 0!8; l.redSideBarBuffer = 0!8;
+l.greenTopBarBuffer= 0!8; l.redTopBarBuffer = 0!8;
+l.draw = { l.midiout.noteOn(3,0,0);
+	32.do({|inc| var message = [0x92];
+		message = message.add(l.redDisplayBuffer[inc*2]|(l.greenDisplayBuffer[inc*2]<<4));
+		message = message.add(l.redDisplayBuffer[inc*2+1]|(l.greenDisplayBuffer[inc*2+1]<<4));
+		l.midiout.sysex(Int8Array.newFrom(message));
+	});
+	4.do({|inc| var message = [0x92];
+		message = message.add(l.redSideBarBuffer[inc*2]|(l.greenSideBarBuffer[inc*2]<<4));
+		message = message.add(l.redSideBarBuffer[inc*2+1]|(l.greenSideBarBuffer[inc*2+1]<<4));
+		l.midiout.sysex(Int8Array.newFrom(message));
+  });
+  4.do({|inc| var message = [0x92];
+		message = message.add(l.redTopBarBuffer[inc*2]|(l.greenTopBarBuffer[inc*2]<<4));
+		message = message.add(l.redTopBarBuffer[inc*2+1]|(l.greenTopBarBuffer[inc*2+1]<<4));
+		l.midiout.sysex(Int8Array.newFrom(message));
+  }); l.midiout.sysex(Int8Array[0xb0,0x00,0x01]); nil;
+};
+c=SystemClock.sched(0,{~displayHandler.();});
+)
